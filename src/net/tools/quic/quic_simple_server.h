@@ -72,19 +72,19 @@ class QuicSimpleServer {
   QuicVersionManager version_manager_;
 
   // Accepts data from the framer and demuxes clients to sessions.
-  std::unique_ptr<QuicDispatcher> dispatcher_;
+  std::unique_ptr<QuicDispatcher> dispatcher_[2];
 
   // Used by the helper_ to time alarms.
   QuicClock clock_;
 
   // Used to manage the message loop. Owned by dispatcher_.
-  QuicChromiumConnectionHelper* helper_;
+  QuicChromiumConnectionHelper* helper_[2];
 
   // Used to manage the message loop. Owned by dispatcher_.
-  QuicChromiumAlarmFactory* alarm_factory_;
+  QuicChromiumAlarmFactory* alarm_factory_[2];
 
   // Listening socket. Also used for outbound client communication.
-  std::unique_ptr<UDPServerSocket> socket_;
+  std::unique_ptr<UDPServerSocket> socket_[2];
 
   // config_ contains non-crypto parameters that are negotiated in the crypto
   // handshake.
@@ -96,21 +96,21 @@ class QuicSimpleServer {
   QuicCryptoServerConfig crypto_config_;
 
   // The address that the server listens on.
-  IPEndPoint server_address_;
+  IPEndPoint server_address_[2];
 
   // Keeps track of whether a read is currently in flight, after which
   // OnReadComplete will be called.
-  bool read_pending_;
+  bool read_pending_[2];
 
   // The number of iterations of the read loop that have completed synchronously
   // and without posting a new task to the message loop.
-  int synchronous_read_count_;
+  int synchronous_read_count_[2];
 
   // The target buffer of the current read.
-  scoped_refptr<IOBufferWithSize> read_buffer_;
+  scoped_refptr<IOBufferWithSize> read_buffer_[2];
 
   // The source address of the current read.
-  IPEndPoint client_address_;
+  IPEndPoint client_address_[2];
 
   // The log to use for the socket.
   NetLog net_log_;
