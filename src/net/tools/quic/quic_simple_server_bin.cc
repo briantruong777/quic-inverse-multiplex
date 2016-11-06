@@ -21,6 +21,7 @@
 
 // The port the quic server will listen on.
 int32_t FLAGS_port = 6121;
+int32_t FLAGS_port2 = 6122;
 
 std::unique_ptr<net::ProofSource> CreateProofSource(
     const base::FilePath& cert_path,
@@ -49,6 +50,7 @@ int main(int argc, char* argv[]) {
         "Options:\n"
         "-h, --help                  show this help message and exit\n"
         "--port=<port>               specify the port to listen on\n"
+        "--port2=<port>              specify the second port to listen on\n"
         "--quic_in_memory_cache_dir  directory containing response data\n"
         "                            to load\n"
         "--certificate_file=<file>   path to the certificate chain\n"
@@ -65,6 +67,13 @@ int main(int argc, char* argv[]) {
   if (line->HasSwitch("port")) {
     if (!base::StringToInt(line->GetSwitchValueASCII("port"), &FLAGS_port)) {
       LOG(ERROR) << "--port must be an integer\n";
+      return 1;
+    }
+  }
+
+  if (line->HasSwitch("port2")) {
+    if (!base::StringToInt(line->GetSwitchValueASCII("port2"), &FLAGS_port2)) {
+      LOG(ERROR) << "--port2 must be an integer\n";
       return 1;
     }
   }
@@ -89,7 +98,11 @@ int main(int argc, char* argv[]) {
       net::AllSupportedVersions());
   server.SetStrikeRegisterNoStartupPeriod();
 
-  int rc = server.Listen(net::IPEndPoint(ip, FLAGS_port));
+  int rc = server.Listen(net::IPEndPoint(ip, FLAGS_port), 0);
+  if (rc < 0) {
+    return 1;
+  }
+  rc = server.Listen(net::IPEndPoint(ip, FLAGS_port2), 1);
   if (rc < 0) {
     return 1;
   }

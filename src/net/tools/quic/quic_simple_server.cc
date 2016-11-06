@@ -208,7 +208,7 @@ void QuicSimpleServer::OnReadComplete(int udp_socket_idx, int result) {
                             helper_[udp_socket_idx]->GetClock()->Now(), false);
   dispatcher_[udp_socket_idx]->ProcessPacket(server_address_[udp_socket_idx], client_address_[udp_socket_idx], packet);
 
-  StartReading();
+  StartReading(udp_socket_idx);
 }
 
 }  // namespace net
