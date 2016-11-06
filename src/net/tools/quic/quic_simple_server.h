@@ -42,26 +42,26 @@ class QuicSimpleServer {
   virtual ~QuicSimpleServer();
 
   // Start listening on the specified address. Returns an error code.
-  int Listen(const IPEndPoint& address);
+  int Listen(const IPEndPoint& address, int udp_socket_idx);
 
   // Server deletion is imminent. Start cleaning up.
   void Shutdown();
 
   // Start reading on the socket. On asynchronous reads, this registers
   // OnReadComplete as the callback, which will then call StartReading again.
-  void StartReading();
+  void StartReading(int udp_socket_idx);
 
   // Called on reads that complete asynchronously. Dispatches the packet and
   // continues the read loop.
-  void OnReadComplete(int result);
+  void OnReadComplete(int udp_socket_idx, int result);
 
   void SetStrikeRegisterNoStartupPeriod() {
     crypto_config_.set_strike_register_no_startup_period();
   }
 
-  QuicDispatcher* dispatcher() { return dispatcher_.get(); }
+  QuicDispatcher* dispatcher() { return dispatcher_[0].get(); }
 
-  IPEndPoint server_address() const { return server_address_; }
+  IPEndPoint server_address() const { return server_address_[0]; }
 
  private:
   friend class test::QuicSimpleServerPeer;
