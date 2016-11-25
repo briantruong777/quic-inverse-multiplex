@@ -42,14 +42,14 @@ class QuicSimpleServer {
   virtual ~QuicSimpleServer();
 
   // Start listening on the specified address. Returns an error code.
-  int Listen(const IPEndPoint& address, int udp_socket_idx);
+  int Listen(const IPEndPoint& address, int udp_socket_idx = 0);
 
   // Server deletion is imminent. Start cleaning up.
   void Shutdown();
 
   // Start reading on the socket. On asynchronous reads, this registers
   // OnReadComplete as the callback, which will then call StartReading again.
-  void StartReading(int udp_socket_idx);
+  void StartReading(int udp_socket_idx = 0);
 
   // Called on reads that complete asynchronously. Dispatches the packet and
   // continues the read loop.
