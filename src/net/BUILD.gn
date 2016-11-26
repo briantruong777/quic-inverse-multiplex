@@ -1173,6 +1173,8 @@ source_set("simple_quic_tools") {
     "tools/quic/quic_dispatcher.h",
     "tools/quic/quic_in_memory_cache.cc",
     "tools/quic/quic_in_memory_cache.h",
+    "tools/quic/quic_inverse_multiplexing_client.cc",
+    "tools/quic/quic_inverse_multiplexing_client.h",
     "tools/quic/quic_per_connection_packet_writer.cc",
     "tools/quic/quic_per_connection_packet_writer.h",
     "tools/quic/quic_process_packet_interface.h",
@@ -1244,6 +1246,19 @@ if (!is_ios) {
   executable("quic_client") {
     sources = [
       "tools/quic/quic_simple_client_bin.cc",
+    ]
+    deps = [
+      ":net",
+      ":simple_quic_tools",
+      "//base",
+      "//build/config/sanitizers:deps",
+      "//build/win:default_exe_manifest",
+      "//url",
+    ]
+  }
+  executable("quic_inverse_multiplexing_client") {
+    sources = [
+      "tools/quic/quic_inverse_multiplexing_client_bin.cc",
     ]
     deps = [
       ":net",
