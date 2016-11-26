@@ -7,7 +7,6 @@
 #include "base/logging.h"
 #include "base/memory/ptr_util.h"
 #include "base/run_loop.h"
-#include "base/threading/thread.h"
 #include "base/threading/thread_task_runner_handle.h"
 #include "net/base/net_errors.h"
 #include "net/http/http_request_info.h"
@@ -64,13 +63,31 @@ QuicInverseMultiplexingClient::QuicInverseMultiplexingClient(
   server_addresses_.push_back(server_address);
 }
 
+void QuicInverseMultiplexingClient::ShutdownClient(int i) {
+  if (clients_status_[i] == UNINITIALIZED) {
+    LOG(ERROR) << "Attempt to destruct uninitialized client.";
+  }
+  if (clients_[i]->connected()) {
+    clients_[i]->session()->connection()->CloseConnection(
+        QUIC_PEER_GOING_AWAY, "Shutting down",
+        ConnectionCloseBehavior::SEND_CONNECTION_CLOSE_PACKET);
+    // Destories unique_ptr to client and cert_verifier in the same thread
+    // that they are created.
+    clients_[i].reset(nullptr);
+    cert_verifiers_[i].reset(nullptr);
+  }
+}
+
 QuicInverseMultiplexingClient::~QuicInverseMultiplexingClient() {
-  for (auto& client : clients_) {
-    if (client->connected()) {
-      client->session()->connection()->CloseConnection(
-          QUIC_PEER_GOING_AWAY, "Shutting down",
-          ConnectionCloseBehavior::SEND_CONNECTION_CLOSE_PACKET);
-    }
+  for (int i = 0; i < int(clients_.size()); i++) {
+    threads_[i]->task_runner()->PostTask(
+        FROM_HERE,
+        base::Bind(&QuicInverseMultiplexingClient::ShutdownClient,
+                   base::Unretained(this), i));
+  }
+  // Waits till all the tasks finished.
+  for (int i = 0; i < int(clients_.size()); i++) {
+    threads_[i]->FlushForTesting();
   }
 }
 
@@ -80,49 +97,103 @@ void QuicInverseMultiplexingClient::AddServerAddresses(
                            server_addresses.end());
 }
 
-bool QuicInverseMultiplexingClient::Initialize() {
-  bool all_initialized = true;
-  for (auto& server_address : server_addresses_) {
-    cert_verifiers_.push_back(CertVerifier::CreateDefault());
-    unique_ptr<ProofVerifier> verifier;
-    if (proof_verifier() == nullptr) {
-      verifier = MakeUnique<FakeProofVerifier>();
-    } else {
-      verifier = MakeUnique<ProofVerifierChromium>(
-              cert_verifiers_.back().get(), new CTPolicyEnforcer(),
+void QuicInverseMultiplexingClient::CreateAndInitializeClient(
+                                              int i, IPEndPoint server_address) {
+  LOG(ERROR) << "Thread " << i << " : CreateAndInitializeClient.";
+  cert_verifiers_[i] = CertVerifier::CreateDefault();
+  unique_ptr<ProofVerifier> verifier;
+  if (proof_verifier() == nullptr) {
+    verifier = MakeUnique<FakeProofVerifier>();
+  } else {
+/*
+    verifier = MakeUnique<ProofVerifierChromium>(
+              cert_verifiers_[i].get(), new CTPolicyEnforcer(),
               new TransportSecurityState, new MultiLogCTVerifier());
-    }
-    clients_.push_back(MakeUnique<QuicSimpleClient>(server_address, server_id(),
-                                                    supported_versions(),
-                                                    std::move(verifier)));
-    all_initialized &= clients_.back()->Initialize();
+*/
+    verifier = MakeUnique<FakeProofVerifier>();
+
   }
-  return all_initialized;
+  clients_[i].reset(new QuicSimpleClient(server_address, server_id(),
+                                         supported_versions(),
+                                         std::move(verifier)));
+  clients_[i]->Initialize();
+  clients_status_[i] = INITIALIZED;
+}
+
+bool QuicInverseMultiplexingClient::Initialize() {
+  // Initializes client vector and thread vector.
+  for (auto& server_address : server_addresses_) {
+    clients_.push_back(std::unique_ptr<QuicSimpleClient>(nullptr));
+    threads_.push_back(MakeUnique<base::Thread>(server_address.ToString()));
+    clients_status_.push_back(UNINITIALIZED);
+    cert_verifiers_.push_back(nullptr);
+  }
+  // Starts thread and call PostTask with Initialize
+  for (int i = 0; i < int(server_addresses_.size()); i++) {
+    // Creates a ProofVerifier for each SimpleClient.
+
+    base::Thread::Options options(base::MessageLoop::TYPE_IO, 0);
+    threads_[i]->StartWithOptions(options);
+    threads_[i]->task_runner()->PostTask(
+        FROM_HERE,
+        base::Bind(&QuicInverseMultiplexingClient::CreateAndInitializeClient,
+                   base::Unretained(this), i, server_addresses_[i]));
+  }
+  return true; // TODO: return the actual status.
+}
+
+void QuicInverseMultiplexingClient::SetMaxLengthAndConnect(
+                                   int i, QuicByteCount init_max_packet_length) {
+  LOG(ERROR) << "Thread " << i << " : SetMaxLengthAndConnect.";
+  // Blocks until client is initialized.
+  while (clients_status_[i] != INITIALIZED) {
+    LOG(ERROR) << "Client has not been initialized yet.";
+  } 
+  // set_initial_max_packet_length need to be called before Connect().
+  clients_[i]->set_initial_max_packet_length(init_max_packet_length);
+  if (!clients_[i]->Connect()) {
+    LOG(ERROR) << "Fail to connect to "
+               << clients_[i]->server_address().ToString();
+  }
+  clients_status_[i] = CONNECTED;
+  LOG(ERROR) << "Thread " << i << " : Connected.";
 }
 
 bool QuicInverseMultiplexingClient::Connect() {
-  // set_initial_max_packet_length need to be called before Connect().
-  bool is_connected = false;
-  for (auto& client : clients_) {
-    client->set_initial_max_packet_length(initial_max_packet_length());
-    if (client->Connect()) {
-      is_connected = true;
-    } else {
-      LOG(ERROR) << client->server_address().ToString()
-                 << " failed to connect.";
-    }
+  for (int i = 0; i < int(clients_.size()); i++) {
+    threads_[i]->task_runner()->PostTask(
+        FROM_HERE,
+        base::Bind(&QuicInverseMultiplexingClient::SetMaxLengthAndConnect,
+                   base::Unretained(this), i, initial_max_packet_length()));
   }
-  return is_connected;
+  return true; // TODO: return the actual status.
 }   
+
+void QuicInverseMultiplexingClient::SendRequestAndWriteResponse(
+    int i, const SpdyHeaderBlock& headers, base::StringPiece body, bool fin) {
+  LOG(ERROR) << "Thread " << i << " : SendRequestAndWriteResponse.";
+  // Blocks untill client is connected.
+  while (clients_status_[i] != CONNECTED) {
+    LOG(ERROR) << "Client has not been connected yet.";
+  }
+  clients_[i]->set_store_response(store_response_);
+  clients_[i].get()->SendRequestAndWaitForResponse(headers, body, fin);
+  clients_status_[i] = REQUEST_SENT;
+  LOG(ERROR) << "Request Sent.";
+  // TODO: write response somewhere.
+}
 
 void QuicInverseMultiplexingClient::SendRequestAndWaitForResponse(
       const SpdyHeaderBlock& headers, base::StringPiece body, bool fin) {
-  // Sends the same request through all the clients_.
-  // TODO: Use a thread for each client.
-  vector<unique_ptr<base::Thread>> threads;
-  for (auto& client : clients_) {
-    client->set_store_response(store_response_);
-    client->SendRequestAndWaitForResponse(headers, body, fin);
+  for (int i = 0; i < int(clients_.size()); i++) {
+    threads_[i]->task_runner()->PostTask(
+        FROM_HERE,
+        base::Bind(&QuicInverseMultiplexingClient::SendRequestAndWriteResponse,
+                   base::Unretained(this), i, base::ConstRef(headers), body,
+                   fin));
+  }
+  for (int i = 0; i < int(clients_.size()); i++) {
+    threads_[i]->FlushForTesting();
   }
   // TODO: parse the body of each response and buffer it in the right order.
   // TODO: merge two loops together.

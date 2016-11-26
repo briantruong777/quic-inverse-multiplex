@@ -10,6 +10,7 @@
 #include "base/command_line.h"
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
+#include "base/threading/thread.h"
 #include "net/base/ip_address.h"
 #include "net/base/ip_endpoint.h"
 #include "net/http/http_response_headers.h"
@@ -112,6 +113,15 @@ class QuicInverseMultiplexingClient : public QuicClientBase {
   QuicChromiumConnectionHelper* CreateQuicConnectionHelper();
   QuicChromiumAlarmFactory* CreateQuicAlarmFactory();
 
+  // Helper function executed by each thread.
+  void CreateAndInitializeClient(int i, IPEndPoint server_address);
+  void SetMaxLengthAndConnect(int i, QuicByteCount init_max_packet_length);
+  void SendRequestAndWriteResponse(int i,
+                                   const SpdyHeaderBlock& headers,
+                                   base::StringPiece body,
+                                   bool fin);
+  void ShutdownClient(int i);
+
   // Flag for storing response.
   bool store_response_ = true;
 
@@ -124,8 +134,20 @@ class QuicInverseMultiplexingClient : public QuicClientBase {
   // Mutiple QuicSimpleClient.
   std::vector<std::unique_ptr<QuicSimpleClient>> clients_;
 
+  // Client Threads. The client must be initialized and called from same thread.
+  std::vector<std::unique_ptr<base::Thread>> threads_;
+
   // Certificate verifiers.
   std::vector<std::unique_ptr<CertVerifier>> cert_verifiers_;
+
+  // Simple client status.
+  enum SimpleClientStatus {
+    UNINITIALIZED = 0,
+    INITIALIZED = 1, 
+    CONNECTED = 2, 
+    REQUEST_SENT = 3,
+  };
+  std::vector<SimpleClientStatus> clients_status_;
 
   // Response.
   std::string latest_response_headers_ = "";
