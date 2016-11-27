@@ -134,8 +134,8 @@ int QuicSimpleServer::Listen(const IPEndPoint& address, int udp_socket_idx) {
       std::unique_ptr<QuicCryptoServerStream::Helper>(
           new QuicSimpleServerSessionHelper(QuicRandom::GetInstance())),
       std::unique_ptr<QuicAlarmFactory>(alarm_factory_[udp_socket_idx])));
-  QuicSimpleServerPacketWriter* writer =
-      new QuicSimpleServerPacketWriter(socket_[udp_socket_idx].get(), dispatcher_[udp_socket_idx].get());
+  QuicSimpleServerPacketWriter* writer = new QuicSimpleServerPacketWriter(
+          socket_[udp_socket_idx].get(), dispatcher_[udp_socket_idx].get());
   dispatcher_[udp_socket_idx]->InitializeWithWriter(writer);
 
   StartReading(udp_socket_idx);
@@ -158,7 +158,8 @@ void QuicSimpleServer::Shutdown() {
 void QuicSimpleServer::StartReading(int udp_socket_idx) {
   if (synchronous_read_count_[udp_socket_idx] == 0) {
     // Only process buffered packets once per message loop.
-    dispatcher_[udp_socket_idx]->ProcessBufferedChlos(kNumSessionsToCreatePerSocketEvent);
+    dispatcher_[udp_socket_idx]->ProcessBufferedChlos(
+            kNumSessionsToCreatePerSocketEvent);
   }
 
   if (read_pending_[udp_socket_idx]) {
@@ -167,8 +168,11 @@ void QuicSimpleServer::StartReading(int udp_socket_idx) {
   read_pending_[udp_socket_idx] = true;
 
   int result = socket_[udp_socket_idx]->RecvFrom(
-      read_buffer_[udp_socket_idx].get(), read_buffer_[udp_socket_idx]->size(), &client_address_[udp_socket_idx],
-      base::Bind(&QuicSimpleServer::OnReadComplete, base::Unretained(this), udp_socket_idx));
+          read_buffer_[udp_socket_idx].get(),
+          read_buffer_[udp_socket_idx]->size(),
+          &client_address_[udp_socket_idx],
+          base::Bind(&QuicSimpleServer::OnReadComplete, base::Unretained(this),
+                     udp_socket_idx));
 
   if (result == ERR_IO_PENDING) {
     synchronous_read_count_[udp_socket_idx] = 0;
@@ -186,8 +190,9 @@ void QuicSimpleServer::StartReading(int udp_socket_idx) {
     // Schedule the processing through the message loop to 1) prevent infinite
     // recursion and 2) avoid blocking the thread for too long.
     base::ThreadTaskRunnerHandle::Get()->PostTask(
-        FROM_HERE, base::Bind(&QuicSimpleServer::OnReadComplete,
-                              weak_factory_.GetWeakPtr(), udp_socket_idx, result));
+            FROM_HERE,
+            base::Bind(&QuicSimpleServer::OnReadComplete,
+                       weak_factory_.GetWeakPtr(), udp_socket_idx, result));
   } else {
     OnReadComplete(udp_socket_idx, result);
   }
@@ -206,7 +211,9 @@ void QuicSimpleServer::OnReadComplete(int udp_socket_idx, int result) {
 
   QuicReceivedPacket packet(read_buffer_[udp_socket_idx]->data(), result,
                             helper_[udp_socket_idx]->GetClock()->Now(), false);
-  dispatcher_[udp_socket_idx]->ProcessPacket(server_address_[udp_socket_idx], client_address_[udp_socket_idx], packet);
+  dispatcher_[udp_socket_idx]->ProcessPacket(server_address_[udp_socket_idx],
+                                             client_address_[udp_socket_idx],
+                                             packet);
 
   StartReading(udp_socket_idx);
 }
