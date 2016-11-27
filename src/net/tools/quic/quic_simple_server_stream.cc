@@ -7,7 +7,10 @@
 #include <list>
 #include <utility>
 
+#include "base/location.h"
 #include "base/logging.h"
+#include "base/single_thread_task_runner.h"
+#include "base/threading/thread_task_runner_handle.h"
 #include "base/stl_util.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_piece.h"
@@ -191,6 +194,24 @@ void QuicSimpleServerStream::SendResponse() {
         static_cast<QuicSimpleServerSession*>(spdy_session());
     session->PromisePushResources(request_url, resources, id(),
                                   request_headers_);
+  }
+
+  static int connection_count = 0;
+  static QuicSimpleServerStream* first_stream;
+  if (++connection_count < 2) {
+      // base::ThreadTaskRunnerHandle::Get()->PostTask(FROM_HERE,
+      //         base::Bind(&:QuicSimpleServerStream::SendHeadersAndBodyAndTrailers));
+      first_stream = this;
+      return;
+  } else {
+      DVLOG(1) << "Sending response for stream " << this->id();
+      first_stream->SendHeadersAndBodyAndTrailers(response->headers().Clone(),
+                                                  response->body(),
+                                                  response->trailers().Clone());
+      DVLOG(1) << "Sending response for stream " << id();
+      SendHeadersAndBodyAndTrailers(response->headers().Clone(),
+                                    response->body(),
+                                    response->trailers().Clone());
   }
 
   DVLOG(1) << "Sending response for stream " << id();
