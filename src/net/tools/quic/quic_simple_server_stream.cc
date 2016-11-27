@@ -204,12 +204,15 @@ void QuicSimpleServerStream::SendResponse() {
       first_stream = this;
       return;
   } else {
+      StringPiece body = response->body();
+      StringPiece body1 = body.substr(0, body.length() / 2);
+      StringPiece body2 = body.substr(body.length() / 2);
       DVLOG(1) << "Sending response for stream " << this->id();
       first_stream->SendHeadersAndBodyAndTrailers(response->headers().Clone(),
-                                                  response->body(),
+                                                  body1,
                                                   response->trailers().Clone());
       DVLOG(1) << "Sending response for stream " << id();
-      SendHeadersAndBodyAndTrailers(response->headers().Clone(), response->body(),
+      SendHeadersAndBodyAndTrailers(response->headers().Clone(), body2,
                                     response->trailers().Clone());
       connection_count = 0;
   }
