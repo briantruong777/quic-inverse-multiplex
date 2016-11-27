@@ -208,11 +208,11 @@ void QuicSimpleServerStream::SendResponse() {
       first_stream->SendHeadersAndBodyAndTrailers(response->headers().Clone(),
                                                   response->body(),
                                                   response->trailers().Clone());
+      DVLOG(1) << "Sending response for stream " << id();
+      SendHeadersAndBodyAndTrailers(response->headers().Clone(), response->body(),
+                                    response->trailers().Clone());
+      connection_count = 0;
   }
-
-  DVLOG(1) << "Sending response for stream " << id();
-  SendHeadersAndBodyAndTrailers(response->headers().Clone(), response->body(),
-                                response->trailers().Clone());
 }
 
 void QuicSimpleServerStream::SendNotFoundResponse() {
