@@ -225,6 +225,11 @@ void QuicClientBase::SendRequest(const SpdyHeaderBlock& headers,
   MaybeAddDataToResend(headers, body, fin);
 }
 
+void QuicClientBase::WaitForResponse() {
+  while (WaitForEvents()) {
+  }
+}
+
 void QuicClientBase::SendRequestAndWaitForResponse(
     const SpdyHeaderBlock& headers,
     StringPiece body,

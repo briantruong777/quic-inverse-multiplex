@@ -113,7 +113,7 @@ bool QuicInverseMultiplexingClient::Connect() {
     }
   }
   return is_connected;
-}   
+}
 
 void QuicInverseMultiplexingClient::SendRequestAndWaitForResponse(
       const SpdyHeaderBlock& headers, base::StringPiece body, bool fin) {
@@ -122,7 +122,10 @@ void QuicInverseMultiplexingClient::SendRequestAndWaitForResponse(
   vector<unique_ptr<base::Thread>> threads;
   for (auto& client : clients_) {
     client->set_store_response(store_response_);
-    client->SendRequestAndWaitForResponse(headers, body, fin);
+    client->SendRequest(headers, body, fin);
+  }
+  for (auto& client : clients_) {
+    client->WaitForResponse();
   }
   // TODO: parse the body of each response and buffer it in the right order.
   // TODO: merge two loops together.
