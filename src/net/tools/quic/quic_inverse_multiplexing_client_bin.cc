@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
           << " initial_mtu: " << FLAGS_initial_mtu;
 
   base::AtExitManager exit_manager;
-  base::MessageLoopForIO message_loop;
+  // base::MessageLoopForIO message_loop;
 
   // Determine IP address to connect to from supplied hostname.
   net::IPAddress ip_addr;

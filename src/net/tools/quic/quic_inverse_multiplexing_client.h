@@ -4,13 +4,15 @@
 
 #include <stddef.h>
 
+#include <condition_variable>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 
 #include "base/command_line.h"
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
-#include "base/threading/thread.h"
 #include "net/base/ip_address.h"
 #include "net/base/ip_endpoint.h"
 #include "net/http/http_response_headers.h"
@@ -76,10 +78,9 @@ class QuicInverseMultiplexingClient : public QuicClientBase {
   // given server_address. 
   bool Initialize() override;
 
-  // TODO: Make the base class method virtual?
   bool Connect();
 
-  void SendRequestAndWaitForResponse(const SpdyHeaderBlock& headers,
+  void SendRequestAndWaitForResponse(SpdyHeaderBlock& headers,
                                      base::StringPiece body,
                                      bool fin);
 
@@ -88,13 +89,13 @@ class QuicInverseMultiplexingClient : public QuicClientBase {
 
   // TODO: session()->error(). Session error handling.
   // Get response.
-  const std::string& latest_response_headers() const { 
+  const std::string& latest_response_headers() const {
     return latest_response_headers_; }
-  const std::string& latest_response_body() const { 
+  const std::string& latest_response_body() const {
     return latest_response_body_; }
-  const std::string& latest_response_trailers() const { 
+  const std::string& latest_response_trailers() const {
     return latest_response_trailers_; }
-  size_t latest_response_code() const { 
+  size_t latest_response_code() const {
     return latest_response_code_; }
 
  protected:
@@ -114,40 +115,54 @@ class QuicInverseMultiplexingClient : public QuicClientBase {
   QuicChromiumAlarmFactory* CreateQuicAlarmFactory();
 
   // Helper function executed by each thread.
+  void RunSimpleClient(int i);
   void CreateAndInitializeClient(int i, IPEndPoint server_address);
   void SetMaxLengthAndConnect(int i, QuicByteCount init_max_packet_length);
   void SendRequestAndWriteResponse(int i,
                                    const SpdyHeaderBlock& headers,
                                    base::StringPiece body,
                                    bool fin);
-  void ShutdownClient(int i);
+  void DestructClient(int i);
 
   // Flag for storing response.
   bool store_response_ = true;
 
   // TODO: Remove this clock.
   QuicClock clock_;
-  
+
   // Server addresses.
   std::vector<IPEndPoint> server_addresses_;
 
   // Mutiple QuicSimpleClient.
   std::vector<std::unique_ptr<QuicSimpleClient>> clients_;
 
-  // Client Threads. The client must be initialized and called from same thread.
-  std::vector<std::unique_ptr<base::Thread>> threads_;
-
   // Certificate verifiers.
   std::vector<std::unique_ptr<CertVerifier>> cert_verifiers_;
 
+  // Parameters for sending request.
+  SpdyHeaderBlock request_headers_;
+  base::StringPiece request_body_;
+  bool request_fin_;
+
+  // Client Threads. The client must be initialized and called from same thread.
+  std::vector<std::unique_ptr<std::thread>> threads_;
+
+  // Mutex and condition variable.
+  std::vector<std::unique_ptr<std::mutex>> mutexes_;
+  std::vector<std::unique_ptr<std::condition_variable>> condition_variables_;
+  // Locks main thread when waiting for response.
+  std::mutex response_mutex_;
+  std::condition_variable response_cv_;
+
   // Simple client status.
   enum SimpleClientStatus {
-    UNINITIALIZED = 0,
-    INITIALIZED = 1, 
-    CONNECTED = 2, 
-    REQUEST_SENT = 3,
+    READY_TO_INITIALIZE = 0,
+    READY_TO_CONNECT = 1,
+    READY_TO_SEND_REQUEST = 2,
+    READY_TO_DESTRUCT = 3,
   };
   std::vector<SimpleClientStatus> clients_status_;
+  int num_response_ready_ = 0;
 
   // Response.
   std::string latest_response_headers_ = "";
