@@ -103,7 +103,6 @@ void QuicInverseMultiplexingClient::AddServerAddresses(
 }
 
 void QuicInverseMultiplexingClient::RunSimpleClient(int i) {
-  base::AtExitManager exit_manager;
   base::MessageLoopForIO message_loop;
   CreateAndInitializeClient(i, server_addresses_[i]);
   // Blocks the client thread until Connect is called from main thread.
