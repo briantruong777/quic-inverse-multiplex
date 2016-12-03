@@ -24,7 +24,7 @@
 #include "net/quic/core/quic_spdy_session.h"
 #include "net/tools/quic/quic_in_memory_cache.h"
 #include "net/tools/quic/quic_simple_server_stream.h"
-#include "net/socket/udp_server_socket.h"
+#include "net/udp/udp_server_socket.h"
 
 namespace net {
 

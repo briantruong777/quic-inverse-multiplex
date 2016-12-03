@@ -14,7 +14,7 @@
 #include "net/quic/core/quic_spdy_stream.h"
 #include "net/spdy/spdy_framer.h"
 #include "base/threading/thread.h"
-#include "net/socket/udp_server_socket.h"
+#include "net/udp/udp_server_socket.h"
 
 namespace net {
 
@@ -83,7 +83,7 @@ class QuicSimpleServerStream : public QuicSpdyStream {
   int64_t content_length_;
   std::string body_;
 
-  base::thread worker_thread_;
+  base::Thread worker_thread_;
   UDPServerSocket* socket_;
 
   DISALLOW_COPY_AND_ASSIGN(QuicSimpleServerStream);

@@ -157,6 +157,7 @@ void QuicSimpleServer::Shutdown() {
 }
 
 void QuicSimpleServer::StartReading(int udp_socket_idx) {
+  socket_[udp_socket_idx]->DetachFromThread();
   if (synchronous_read_count_[udp_socket_idx] == 0) {
     // Only process buffered packets once per message loop.
     dispatcher_[udp_socket_idx]->ProcessBufferedChlos(
@@ -197,6 +198,7 @@ void QuicSimpleServer::StartReading(int udp_socket_idx) {
   } else {
     OnReadComplete(udp_socket_idx, result);
   }
+  socket_[udp_socket_idx]->DetachFromThread();
 }
 
 void QuicSimpleServer::OnReadComplete(int udp_socket_idx, int result) {

@@ -215,11 +215,12 @@ void QuicSimpleServerStream::SendResponse() {
       StringPiece body2 = body.substr(body.length() / 2);
 
       DVLOG(1) << "Sending response for stream " << this->id() << " on worker thread";
-      worker_thread_.task_runner().PostTask(
+      worker_thread_.task_runner()->PostTask(
               FROM_HERE,
-              base::Bind(&first_stream->SendHeadersAndBodyAndTrailers,
-                         response->headers().Clone(), body1,
-                         response->trailers().Clone()));
+              base::Bind(&QuicSimpleServerStream::SendHeadersAndBodyAndTrailers,
+                         base::Unretained(first_stream),
+                         base::Passed(response->headers().Clone()), body1,
+                         base::Passed(response->trailers().Clone())));
       DVLOG(1) << "Sending response for stream " << id();
       SendHeadersAndBodyAndTrailers(response->headers().Clone(), body2,
                                     response->trailers().Clone());
@@ -254,7 +255,8 @@ void QuicSimpleServerStream::SendHeadersAndBodyAndTrailers(
     SpdyHeaderBlock response_headers,
     StringPiece body,
     SpdyHeaderBlock response_trailers) {
-  socket_.DetachFromThread();
+  LOG(ERROR) << "Beginning of SendHeadersAndBodyAndTrailers";
+  socket_->DetachFromThread();
   if (!allow_bidirectional_data() && !reading_stopped()) {
     StopReading();
   }
@@ -285,7 +287,8 @@ void QuicSimpleServerStream::SendHeadersAndBodyAndTrailers(
   DVLOG(1) << "Writing trailers (fin = true): "
            << response_trailers.DebugString();
   WriteTrailers(std::move(response_trailers), nullptr);
-  socket_.DetachFromThread();
+  LOG(ERROR) << "End of SendHeadersAndBodyAndTrailers";
+  socket_->DetachFromThread();
 }
 
 const char* const QuicSimpleServerStream::kErrorResponseBody = "bad";
