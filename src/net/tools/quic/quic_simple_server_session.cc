@@ -26,14 +26,15 @@ QuicSimpleServerSession::QuicSimpleServerSession(
     QuicSession::Visitor* visitor,
     QuicCryptoServerStream::Helper* helper,
     const QuicCryptoServerConfig* crypto_config,
-    QuicCompressedCertsCache* compressed_certs_cache)
+    QuicCompressedCertsCache* compressed_certs_cache,
+    UDPServerSocket* socket)
     : QuicServerSessionBase(config,
                             connection,
                             visitor,
                             helper,
                             crypto_config,
                             compressed_certs_cache),
-      highest_promised_stream_id_(0) {}
+      highest_promised_stream_id_(0), socket_(socket) {}
 
 QuicSimpleServerSession::~QuicSimpleServerSession() {
   delete connection();
@@ -95,7 +96,7 @@ QuicSpdyStream* QuicSimpleServerSession::CreateIncomingDynamicStream(
     return nullptr;
   }
 
-  QuicSpdyStream* stream = new QuicSimpleServerStream(id, this);
+  QuicSpdyStream* stream = new QuicSimpleServerStream(id, this, socket_);
   ActivateStream(base::WrapUnique(stream));
   return stream;
 }
@@ -107,7 +108,7 @@ QuicSimpleServerStream* QuicSimpleServerSession::CreateOutgoingDynamicStream(
   }
 
   QuicSimpleServerStream* stream =
-      new QuicSimpleServerStream(GetNextOutgoingStreamId(), this);
+      new QuicSimpleServerStream(GetNextOutgoingStreamId(), this, socket_);
   stream->SetPriority(priority);
   ActivateStream(base::WrapUnique(stream));
   return stream;

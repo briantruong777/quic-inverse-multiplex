@@ -133,7 +133,8 @@ int QuicSimpleServer::Listen(const IPEndPoint& address, int udp_socket_idx) {
       std::unique_ptr<QuicConnectionHelperInterface>(helper_[udp_socket_idx]),
       std::unique_ptr<QuicCryptoServerStream::Helper>(
           new QuicSimpleServerSessionHelper(QuicRandom::GetInstance())),
-      std::unique_ptr<QuicAlarmFactory>(alarm_factory_[udp_socket_idx])));
+      std::unique_ptr<QuicAlarmFactory>(alarm_factory_[udp_socket_idx]),
+      socket_[udp_socket_idx].get()));
   QuicSimpleServerPacketWriter* writer = new QuicSimpleServerPacketWriter(
           socket_[udp_socket_idx].get(), dispatcher_[udp_socket_idx].get());
   dispatcher_[udp_socket_idx]->InitializeWithWriter(writer);

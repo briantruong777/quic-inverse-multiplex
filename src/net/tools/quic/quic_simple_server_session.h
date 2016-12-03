@@ -24,6 +24,7 @@
 #include "net/quic/core/quic_spdy_session.h"
 #include "net/tools/quic/quic_in_memory_cache.h"
 #include "net/tools/quic/quic_simple_server_stream.h"
+#include "net/socket/udp_server_socket.h"
 
 namespace net {
 
@@ -64,7 +65,8 @@ class QuicSimpleServerSession : public QuicServerSessionBase {
                           QuicSession::Visitor* visitor,
                           QuicCryptoServerStream::Helper* helper,
                           const QuicCryptoServerConfig* crypto_config,
-                          QuicCompressedCertsCache* compressed_certs_cache);
+                          QuicCompressedCertsCache* compressed_certs_cache,
+                          UDPServerSocket* socket);
 
   ~QuicSimpleServerSession() override;
 
@@ -149,6 +151,8 @@ class QuicSimpleServerSession : public QuicServerSessionBase {
   // stream_id is always next_outgoing_stream_id_, and the last one is always
   // highest_promised_stream_id_.
   std::deque<PromisedStreamInfo> promised_streams_;
+
+  UDPServerSocket* socket_;
 
   DISALLOW_COPY_AND_ASSIGN(QuicSimpleServerSession);
 };
