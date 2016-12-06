@@ -42,26 +42,26 @@ class QuicSimpleServer {
   virtual ~QuicSimpleServer();
 
   // Start listening on the specified address. Returns an error code.
-  int Listen(const IPEndPoint& address, int udp_socket_idx = 0);
+  int Listen(const IPEndPoint& address);
 
   // Server deletion is imminent. Start cleaning up.
   void Shutdown();
 
   // Start reading on the socket. On asynchronous reads, this registers
   // OnReadComplete as the callback, which will then call StartReading again.
-  void StartReading(int udp_socket_idx = 0);
+  void StartReading();
 
   // Called on reads that complete asynchronously. Dispatches the packet and
   // continues the read loop.
-  void OnReadComplete(int udp_socket_idx, int result);
+  void OnReadComplete(int result);
 
   void SetStrikeRegisterNoStartupPeriod() {
     crypto_config_.set_strike_register_no_startup_period();
   }
 
-  QuicDispatcher* dispatcher() { return dispatcher_[0].get(); }
+  QuicDispatcher* dispatcher() { return dispatcher_.get(); }
 
-  IPEndPoint server_address() const { return server_address_[0]; }
+  IPEndPoint server_address() const { return server_address_; }
 
  private:
   friend class test::QuicSimpleServerPeer;
@@ -72,19 +72,19 @@ class QuicSimpleServer {
   QuicVersionManager version_manager_;
 
   // Accepts data from the framer and demuxes clients to sessions.
-  std::unique_ptr<QuicDispatcher> dispatcher_[2];
+  std::unique_ptr<QuicDispatcher> dispatcher_;
 
   // Used by the helper_ to time alarms.
   QuicClock clock_;
 
   // Used to manage the message loop. Owned by dispatcher_.
-  QuicChromiumConnectionHelper* helper_[2];
+  QuicChromiumConnectionHelper* helper_;
 
   // Used to manage the message loop. Owned by dispatcher_.
-  QuicChromiumAlarmFactory* alarm_factory_[2];
+  QuicChromiumAlarmFactory* alarm_factory_;
 
   // Listening socket. Also used for outbound client communication.
-  std::unique_ptr<UDPServerSocket> socket_[2];
+  std::unique_ptr<UDPServerSocket> socket_;
 
   // config_ contains non-crypto parameters that are negotiated in the crypto
   // handshake.
@@ -96,21 +96,21 @@ class QuicSimpleServer {
   QuicCryptoServerConfig crypto_config_;
 
   // The address that the server listens on.
-  IPEndPoint server_address_[2];
+  IPEndPoint server_address_;
 
   // Keeps track of whether a read is currently in flight, after which
   // OnReadComplete will be called.
-  bool read_pending_[2];
+  bool read_pending_;
 
   // The number of iterations of the read loop that have completed synchronously
   // and without posting a new task to the message loop.
-  int synchronous_read_count_[2];
+  int synchronous_read_count_;
 
   // The target buffer of the current read.
-  scoped_refptr<IOBufferWithSize> read_buffer_[2];
+  scoped_refptr<IOBufferWithSize> read_buffer_;
 
   // The source address of the current read.
-  IPEndPoint client_address_[2];
+  IPEndPoint client_address_;
 
   // The log to use for the socket.
   NetLog net_log_;

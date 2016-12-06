@@ -37,29 +37,26 @@ const int kReadBufferSize = 2 * kMaxPacketSize;
 }  // namespace
 
 QuicSimpleServer::QuicSimpleServer(
-        std::unique_ptr<ProofSource> proof_source, const QuicConfig& config,
-        const QuicCryptoServerConfig::ConfigOptions& crypto_config_options,
-        const QuicVersionVector& supported_versions)
+    std::unique_ptr<ProofSource> proof_source,
+    const QuicConfig& config,
+    const QuicCryptoServerConfig::ConfigOptions& crypto_config_options,
+    const QuicVersionVector& supported_versions)
     : version_manager_(supported_versions),
-      helper_{new QuicChromiumConnectionHelper(&clock_,
-                                               QuicRandom::GetInstance()),
-              new QuicChromiumConnectionHelper(&clock_,
-                                               QuicRandom::GetInstance())},
-      alarm_factory_{
-              new QuicChromiumAlarmFactory(
-                      base::ThreadTaskRunnerHandle::Get().get(), &clock_),
-              new QuicChromiumAlarmFactory(
-                      base::ThreadTaskRunnerHandle::Get().get(), &clock_)},
+      helper_(
+          new QuicChromiumConnectionHelper(&clock_, QuicRandom::GetInstance())),
+      alarm_factory_(new QuicChromiumAlarmFactory(
+          base::ThreadTaskRunnerHandle::Get().get(),
+          &clock_)),
       config_(config),
       crypto_config_options_(crypto_config_options),
-      crypto_config_(kSourceAddressTokenSecret, QuicRandom::GetInstance(),
+      crypto_config_(kSourceAddressTokenSecret,
+                     QuicRandom::GetInstance(),
                      std::move(proof_source)),
-      read_pending_{false, false},
-      synchronous_read_count_{0, 0},
-      read_buffer_{new IOBufferWithSize(kReadBufferSize),
-                   new IOBufferWithSize(kReadBufferSize)},
+      read_pending_(false),
+      synchronous_read_count_(0),
+      read_buffer_(new IOBufferWithSize(kReadBufferSize)),
       weak_factory_(this) {
-    Initialize();
+  Initialize();
 }
 
 void QuicSimpleServer::Initialize() {
@@ -82,15 +79,14 @@ void QuicSimpleServer::Initialize() {
         kInitialSessionFlowControlWindow);
   }
 
-  //TODO: Might need to make two of these for each helper_
   std::unique_ptr<CryptoHandshakeMessage> scfg(crypto_config_.AddDefaultConfig(
-      helper_[0]->GetRandomGenerator(), helper_[0]->GetClock(),
+      helper_->GetRandomGenerator(), helper_->GetClock(),
       crypto_config_options_));
 }
 
 QuicSimpleServer::~QuicSimpleServer() {}
 
-int QuicSimpleServer::Listen(const IPEndPoint& address, int udp_socket_idx) {
+int QuicSimpleServer::Listen(const IPEndPoint& address) {
   std::unique_ptr<UDPServerSocket> socket(
       new UDPServerSocket(&net_log_, NetLogSource()));
 
@@ -118,27 +114,27 @@ int QuicSimpleServer::Listen(const IPEndPoint& address, int udp_socket_idx) {
     return rc;
   }
 
-  rc = socket->GetLocalAddress(&server_address_[udp_socket_idx]);
+  rc = socket->GetLocalAddress(&server_address_);
   if (rc < 0) {
     LOG(ERROR) << "GetLocalAddress() failed: " << ErrorToString(rc);
     return rc;
   }
 
-  DVLOG(1) << "Listening on " << server_address_[udp_socket_idx].ToString();
+  DVLOG(1) << "Listening on " << server_address_.ToString();
 
-  socket_[udp_socket_idx].swap(socket);
+  socket_.swap(socket);
 
-  dispatcher_[udp_socket_idx].reset(new QuicSimpleDispatcher(
+  dispatcher_.reset(new QuicSimpleDispatcher(
       config_, &crypto_config_, &version_manager_,
-      std::unique_ptr<QuicConnectionHelperInterface>(helper_[udp_socket_idx]),
+      std::unique_ptr<QuicConnectionHelperInterface>(helper_),
       std::unique_ptr<QuicCryptoServerStream::Helper>(
           new QuicSimpleServerSessionHelper(QuicRandom::GetInstance())),
-      std::unique_ptr<QuicAlarmFactory>(alarm_factory_[udp_socket_idx])));
-  QuicSimpleServerPacketWriter* writer = new QuicSimpleServerPacketWriter(
-          socket_[udp_socket_idx].get(), dispatcher_[udp_socket_idx].get());
-  dispatcher_[udp_socket_idx]->InitializeWithWriter(writer);
+      std::unique_ptr<QuicAlarmFactory>(alarm_factory_)));
+  QuicSimpleServerPacketWriter* writer =
+      new QuicSimpleServerPacketWriter(socket_.get(), dispatcher_.get());
+  dispatcher_->InitializeWithWriter(writer);
 
-  StartReading(udp_socket_idx);
+  StartReading();
 
   return OK;
 }
@@ -146,60 +142,52 @@ int QuicSimpleServer::Listen(const IPEndPoint& address, int udp_socket_idx) {
 void QuicSimpleServer::Shutdown() {
   // Before we shut down the epoll server, give all active sessions a chance to
   // notify clients that they're closing.
-  dispatcher_[0]->Shutdown();
-  dispatcher_[1]->Shutdown();
+  dispatcher_->Shutdown();
 
-  socket_[0]->Close();
-  socket_[1]->Close();
-  socket_[0].reset();
-  socket_[1].reset();
+  socket_->Close();
+  socket_.reset();
 }
 
-void QuicSimpleServer::StartReading(int udp_socket_idx) {
-  if (synchronous_read_count_[udp_socket_idx] == 0) {
+void QuicSimpleServer::StartReading() {
+  if (synchronous_read_count_ == 0) {
     // Only process buffered packets once per message loop.
-    dispatcher_[udp_socket_idx]->ProcessBufferedChlos(
-            kNumSessionsToCreatePerSocketEvent);
+    dispatcher_->ProcessBufferedChlos(kNumSessionsToCreatePerSocketEvent);
   }
 
-  if (read_pending_[udp_socket_idx]) {
+  if (read_pending_) {
     return;
   }
-  read_pending_[udp_socket_idx] = true;
+  read_pending_ = true;
 
-  int result = socket_[udp_socket_idx]->RecvFrom(
-          read_buffer_[udp_socket_idx].get(),
-          read_buffer_[udp_socket_idx]->size(),
-          &client_address_[udp_socket_idx],
-          base::Bind(&QuicSimpleServer::OnReadComplete, base::Unretained(this),
-                     udp_socket_idx));
+  int result = socket_->RecvFrom(
+      read_buffer_.get(), read_buffer_->size(), &client_address_,
+      base::Bind(&QuicSimpleServer::OnReadComplete, base::Unretained(this)));
 
   if (result == ERR_IO_PENDING) {
-    synchronous_read_count_[udp_socket_idx] = 0;
-    if (dispatcher_[udp_socket_idx]->HasChlosBuffered()) {
+    synchronous_read_count_ = 0;
+    if (dispatcher_->HasChlosBuffered()) {
       // No more packets to read, so yield before processing buffered packets.
       base::ThreadTaskRunnerHandle::Get()->PostTask(
           FROM_HERE, base::Bind(&QuicSimpleServer::StartReading,
-                                weak_factory_.GetWeakPtr(), udp_socket_idx));
+                                weak_factory_.GetWeakPtr()));
     }
     return;
   }
 
-  if (++synchronous_read_count_[udp_socket_idx] > 32) {
-    synchronous_read_count_[udp_socket_idx] = 0;
+  if (++synchronous_read_count_ > 32) {
+    synchronous_read_count_ = 0;
     // Schedule the processing through the message loop to 1) prevent infinite
     // recursion and 2) avoid blocking the thread for too long.
     base::ThreadTaskRunnerHandle::Get()->PostTask(
-            FROM_HERE,
-            base::Bind(&QuicSimpleServer::OnReadComplete,
-                       weak_factory_.GetWeakPtr(), udp_socket_idx, result));
+        FROM_HERE, base::Bind(&QuicSimpleServer::OnReadComplete,
+                              weak_factory_.GetWeakPtr(), result));
   } else {
-    OnReadComplete(udp_socket_idx, result);
+    OnReadComplete(result);
   }
 }
 
-void QuicSimpleServer::OnReadComplete(int udp_socket_idx, int result) {
-  read_pending_[udp_socket_idx] = false;
+void QuicSimpleServer::OnReadComplete(int result) {
+  read_pending_ = false;
   if (result == 0)
     result = ERR_CONNECTION_CLOSED;
 
@@ -209,13 +197,11 @@ void QuicSimpleServer::OnReadComplete(int udp_socket_idx, int result) {
     return;
   }
 
-  QuicReceivedPacket packet(read_buffer_[udp_socket_idx]->data(), result,
-                            helper_[udp_socket_idx]->GetClock()->Now(), false);
-  dispatcher_[udp_socket_idx]->ProcessPacket(server_address_[udp_socket_idx],
-                                             client_address_[udp_socket_idx],
-                                             packet);
+  QuicReceivedPacket packet(read_buffer_->data(), result,
+                            helper_->GetClock()->Now(), false);
+  dispatcher_->ProcessPacket(server_address_, client_address_, packet);
 
-  StartReading(udp_socket_idx);
+  StartReading();
 }
 
 }  // namespace net
