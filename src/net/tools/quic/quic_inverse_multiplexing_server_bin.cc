@@ -17,7 +17,7 @@
 #include "net/quic/chromium/crypto/proof_source_chromium.h"
 #include "net/quic/core/quic_protocol.h"
 #include "net/tools/quic/quic_in_memory_cache.h"
-#include "net/tools/quic/quic_simple_server.h"
+#include "net/tools/quic/quic_inverse_multiplexing_server.h"
 
 // The port the quic server will listen on.
 int32_t FLAGS_port = 6121;
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
   net::IPAddress ip = net::IPAddress::IPv6AllZeros();
 
   net::QuicConfig config;
-  net::QuicSimpleServer server(
+  net::QuicInverseMultiplexingServer server(
       CreateProofSource(line->GetSwitchValuePath("certificate_file"),
                         line->GetSwitchValuePath("key_file")),
       config, net::QuicCryptoServerConfig::ConfigOptions(),

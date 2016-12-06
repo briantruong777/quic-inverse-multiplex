@@ -5,8 +5,8 @@
 // A toy server, which listens on a specified address for QUIC traffic and
 // handles incoming responses.
 
-#ifndef NET_QUIC_TOOLS_QUIC_SIMPLE_SERVER_H_
-#define NET_QUIC_TOOLS_QUIC_SIMPLE_SERVER_H_
+#ifndef NET_QUIC_TOOLS_QUIC_INVERSE_MULTIPLEXING_SERVER_H_
+#define NET_QUIC_TOOLS_QUIC_INVERSE_MULTIPLEXING_SERVER_H_
 
 #include <memory>
 
@@ -31,15 +31,15 @@ namespace test {
 class QuicSimpleServerPeer;
 }  // namespace test
 
-class QuicSimpleServer {
+class QuicInverseMultiplexingServer {
  public:
-  QuicSimpleServer(
+  QuicInverseMultiplexingServer(
       std::unique_ptr<ProofSource> proof_source,
       const QuicConfig& config,
       const QuicCryptoServerConfig::ConfigOptions& crypto_config_options,
       const QuicVersionVector& supported_versions);
 
-  virtual ~QuicSimpleServer();
+  virtual ~QuicInverseMultiplexingServer();
 
   // Start listening on the specified address. Returns an error code.
   int Listen(const IPEndPoint& address);
@@ -115,11 +115,11 @@ class QuicSimpleServer {
   // The log to use for the socket.
   NetLog net_log_;
 
-  base::WeakPtrFactory<QuicSimpleServer> weak_factory_;
+  base::WeakPtrFactory<QuicInverseMultiplexingServer> weak_factory_;
 
-  DISALLOW_COPY_AND_ASSIGN(QuicSimpleServer);
+  DISALLOW_COPY_AND_ASSIGN(QuicInverseMultiplexingServer);
 };
 
 }  // namespace net
 
-#endif  // NET_QUIC_TOOLS_QUIC_SIMPLE_SERVER_H_
+#endif  // NET_QUIC_TOOLS_QUIC_INVERSE_MULTIPLEXING_SERVER_H_
