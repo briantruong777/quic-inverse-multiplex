@@ -7,11 +7,15 @@
 #include <list>
 #include <utility>
 
+#include "base/location.h"
 #include "base/logging.h"
+#include "base/single_thread_task_runner.h"
+#include "base/threading/thread_task_runner_handle.h"
 #include "base/stl_util.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_piece.h"
 #include "base/strings/string_split.h"
+#include "base/synchronization/condition_variable.h"
 #include "net/quic/core/quic_bug_tracker.h"
 #include "net/quic/core/quic_flags.h"
 #include "net/quic/core/quic_spdy_stream.h"
@@ -193,9 +197,28 @@ void QuicSimpleServerStream::SendResponse() {
                                   request_headers_);
   }
 
-  DVLOG(1) << "Sending response for stream " << id();
-  SendHeadersAndBodyAndTrailers(response->headers().Clone(), response->body(),
-                                response->trailers().Clone());
+  StringPiece body = response->body();
+  StringPiece body1 = body.substr(0, body.length() / 2);
+  StringPiece body2 = body.substr(body.length() / 2);
+
+  static base::Lock multiplex_lock;
+  static base::ConditionVariable multiplex_cv(&multiplex_lock);
+  static int connection_count = 0;
+  multiplex_lock.Acquire();
+  if (++connection_count % 2 == 1) {
+    while (connection_count % 2 == 1) multiplex_cv.Wait();
+    multiplex_lock.Release();
+    DVLOG(1) << "Sending response for stream " << id();
+    SendHeadersAndBodyAndTrailers(response->headers().Clone(),
+                                  body1,
+                                  response->trailers().Clone());
+  } else {
+    multiplex_lock.Release();
+    multiplex_cv.Signal();
+    DVLOG(1) << "Sending response for stream " << id();
+    SendHeadersAndBodyAndTrailers(response->headers().Clone(), body2,
+                                  response->trailers().Clone());
+  }
 }
 
 void QuicSimpleServerStream::SendNotFoundResponse() {

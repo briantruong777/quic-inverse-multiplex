@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "net/tools/quic/quic_simple_server.h"
+#include "net/tools/quic/quic_inverse_multiplexing_server.h"
 
 #include <string.h>
 
@@ -36,7 +36,7 @@ const int kReadBufferSize = 2 * kMaxPacketSize;
 
 }  // namespace
 
-QuicSimpleServer::QuicSimpleServer(
+QuicInverseMultiplexingServer::QuicInverseMultiplexingServer(
     std::unique_ptr<ProofSource> proof_source,
     const QuicConfig& config,
     const QuicCryptoServerConfig::ConfigOptions& crypto_config_options,
@@ -59,7 +59,7 @@ QuicSimpleServer::QuicSimpleServer(
   Initialize();
 }
 
-void QuicSimpleServer::Initialize() {
+void QuicInverseMultiplexingServer::Initialize() {
 #if MMSG_MORE
   use_recvmmsg_ = true;
 #endif
@@ -84,9 +84,9 @@ void QuicSimpleServer::Initialize() {
       crypto_config_options_));
 }
 
-QuicSimpleServer::~QuicSimpleServer() {}
+QuicInverseMultiplexingServer::~QuicInverseMultiplexingServer() {}
 
-int QuicSimpleServer::Listen(const IPEndPoint& address) {
+int QuicInverseMultiplexingServer::Listen(const IPEndPoint& address) {
   std::unique_ptr<UDPServerSocket> socket(
       new UDPServerSocket(&net_log_, NetLogSource()));
 
@@ -139,7 +139,7 @@ int QuicSimpleServer::Listen(const IPEndPoint& address) {
   return OK;
 }
 
-void QuicSimpleServer::Shutdown() {
+void QuicInverseMultiplexingServer::Shutdown() {
   // Before we shut down the epoll server, give all active sessions a chance to
   // notify clients that they're closing.
   dispatcher_->Shutdown();
@@ -148,7 +148,7 @@ void QuicSimpleServer::Shutdown() {
   socket_.reset();
 }
 
-void QuicSimpleServer::StartReading() {
+void QuicInverseMultiplexingServer::StartReading() {
   if (synchronous_read_count_ == 0) {
     // Only process buffered packets once per message loop.
     dispatcher_->ProcessBufferedChlos(kNumSessionsToCreatePerSocketEvent);
@@ -161,14 +161,14 @@ void QuicSimpleServer::StartReading() {
 
   int result = socket_->RecvFrom(
       read_buffer_.get(), read_buffer_->size(), &client_address_,
-      base::Bind(&QuicSimpleServer::OnReadComplete, base::Unretained(this)));
+      base::Bind(&QuicInverseMultiplexingServer::OnReadComplete, base::Unretained(this)));
 
   if (result == ERR_IO_PENDING) {
     synchronous_read_count_ = 0;
     if (dispatcher_->HasChlosBuffered()) {
       // No more packets to read, so yield before processing buffered packets.
       base::ThreadTaskRunnerHandle::Get()->PostTask(
-          FROM_HERE, base::Bind(&QuicSimpleServer::StartReading,
+          FROM_HERE, base::Bind(&QuicInverseMultiplexingServer::StartReading,
                                 weak_factory_.GetWeakPtr()));
     }
     return;
@@ -179,20 +179,20 @@ void QuicSimpleServer::StartReading() {
     // Schedule the processing through the message loop to 1) prevent infinite
     // recursion and 2) avoid blocking the thread for too long.
     base::ThreadTaskRunnerHandle::Get()->PostTask(
-        FROM_HERE, base::Bind(&QuicSimpleServer::OnReadComplete,
+        FROM_HERE, base::Bind(&QuicInverseMultiplexingServer::OnReadComplete,
                               weak_factory_.GetWeakPtr(), result));
   } else {
     OnReadComplete(result);
   }
 }
 
-void QuicSimpleServer::OnReadComplete(int result) {
+void QuicInverseMultiplexingServer::OnReadComplete(int result) {
   read_pending_ = false;
   if (result == 0)
     result = ERR_CONNECTION_CLOSED;
 
   if (result < 0) {
-    LOG(ERROR) << "QuicSimpleServer read failed: " << ErrorToString(result);
+    LOG(ERROR) << "QuicInverseMultiplexingServer read failed: " << ErrorToString(result);
     Shutdown();
     return;
   }

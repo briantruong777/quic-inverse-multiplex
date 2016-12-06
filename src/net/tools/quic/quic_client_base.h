@@ -110,6 +110,7 @@ class QuicClientBase : public QuicClientPushPromiseIndex::Delegate,
   void SendRequest(const SpdyHeaderBlock& headers,
                    base::StringPiece body,
                    bool fin);
+  void WaitForResponse();
 
   // Sends an HTTP request and waits for response before returning.
   void SendRequestAndWaitForResponse(const SpdyHeaderBlock& headers,

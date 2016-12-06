@@ -16,5 +16,6 @@ group("root") {
     "//net:quic_server",
     "//net:quic_client",
     "//net:quic_inverse_multiplexing_client",
+    "//net:quic_inverse_multiplexing_server",
   ]
 }
