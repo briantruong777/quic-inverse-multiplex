@@ -15,6 +15,7 @@
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_piece.h"
 #include "base/strings/string_split.h"
+#include "base/synchronization/condition_variable.h"
 #include "net/quic/core/quic_bug_tracker.h"
 #include "net/quic/core/quic_flags.h"
 #include "net/quic/core/quic_spdy_stream.h"
@@ -196,25 +197,27 @@ void QuicSimpleServerStream::SendResponse() {
                                   request_headers_);
   }
 
+  StringPiece body = response->body();
+  StringPiece body1 = body.substr(0, body.length() / 2);
+  StringPiece body2 = body.substr(body.length() / 2);
+
+  static base::Lock multiplex_lock;
+  static base::ConditionVariable multiplex_cv(&multiplex_lock);
   static int connection_count = 0;
-  static QuicSimpleServerStream* first_stream;
-  if (++connection_count < 2) {
-      // base::ThreadTaskRunnerHandle::Get()->PostTask(FROM_HERE,
-      //         base::Bind(&:QuicSimpleServerStream::SendHeadersAndBodyAndTrailers));
-      first_stream = this;
-      return;
+  multiplex_lock.Acquire();
+  if (++connection_count % 2 == 1) {
+    while (connection_count % 2 == 1) multiplex_cv.Wait();
+    multiplex_lock.Release();
+    DVLOG(1) << "Sending response for stream " << id();
+    SendHeadersAndBodyAndTrailers(response->headers().Clone(),
+                                  body1,
+                                  response->trailers().Clone());
   } else {
-      StringPiece body = response->body();
-      StringPiece body1 = body.substr(0, body.length() / 2);
-      StringPiece body2 = body.substr(body.length() / 2);
-      DVLOG(1) << "Sending response for stream " << this->id();
-      first_stream->SendHeadersAndBodyAndTrailers(response->headers().Clone(),
-                                                  body1,
-                                                  response->trailers().Clone());
-      DVLOG(1) << "Sending response for stream " << id();
-      SendHeadersAndBodyAndTrailers(response->headers().Clone(), body2,
-                                    response->trailers().Clone());
-      connection_count = 0;
+    multiplex_lock.Release();
+    multiplex_cv.Signal();
+    DVLOG(1) << "Sending response for stream " << id();
+    SendHeadersAndBodyAndTrailers(response->headers().Clone(), body2,
+                                  response->trailers().Clone());
   }
 }
 

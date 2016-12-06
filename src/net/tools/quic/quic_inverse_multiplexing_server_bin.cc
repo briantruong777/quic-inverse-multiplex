@@ -13,7 +13,7 @@
 #include "base/logging.h"
 #include "base/run_loop.h"
 #include "base/strings/string_number_conversions.h"
-#include "base/theading/thread.h"
+#include "base/threading/thread.h"
 #include "net/base/ip_address.h"
 #include "net/base/ip_endpoint.h"
 #include "net/quic/chromium/crypto/proof_source_chromium.h"
@@ -34,7 +34,7 @@ std::unique_ptr<net::ProofSource> CreateProofSource(
   return std::move(proof_source);
 }
 
-// Starts a server with given port.
+// Starts a server with given port and runs the message loop.
 void StartServer(int32_t port, const base::CommandLine* line) {
   net::IPAddress ip = net::IPAddress::IPv6AllZeros();
 
@@ -50,6 +50,8 @@ void StartServer(int32_t port, const base::CommandLine* line) {
   if (rc < 0) {
     exit(1);
   }
+
+  base::RunLoop().Run();
 }
 
 int main(int argc, char* argv[]) {
@@ -109,16 +111,16 @@ int main(int argc, char* argv[]) {
   }
 
   base::Thread port2_thread("port2_thread");
-  if (!port2_thread.Start()) {
+  base::Thread::Options options(base::MessageLoop::TYPE_IO, 0);
+  if (!port2_thread.StartWithOptions(options)) {
     LOG(ERROR) << "failed to start port2_thread";
     return 1;
   }
-  port2_thread.task_runner().PostTask(
+  port2_thread.task_runner()->PostTask(
           FROM_HERE, base::Bind(&StartServer, FLAGS_port2, line));
 
+  // Should only return when this thread's message loop quits.
   StartServer(FLAGS_port, line);
-
-  base::RunLoop().Run();
 
   return 0;
 }
