@@ -7,13 +7,13 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <thread>
 
 #include "base/at_exit.h"
 #include "base/command_line.h"
 #include "base/logging.h"
 #include "base/run_loop.h"
 #include "base/strings/string_number_conversions.h"
-#include "base/threading/thread.h"
 #include "net/base/ip_address.h"
 #include "net/base/ip_endpoint.h"
 #include "net/quic/chromium/crypto/proof_source_chromium.h"
@@ -52,6 +52,11 @@ void StartServer(int32_t port, const base::CommandLine* line) {
   }
 
   base::RunLoop().Run();
+}
+
+void StartPort2Thread(int32_t port, const base::CommandLine* line) {
+  base::MessageLoopForIO message_loop;
+  StartServer(port, line);
 }
 
 int main(int argc, char* argv[]) {
@@ -110,14 +115,7 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  base::Thread port2_thread("port2_thread");
-  base::Thread::Options options(base::MessageLoop::TYPE_IO, 0);
-  if (!port2_thread.StartWithOptions(options)) {
-    LOG(ERROR) << "failed to start port2_thread";
-    return 1;
-  }
-  port2_thread.task_runner()->PostTask(
-          FROM_HERE, base::Bind(&StartServer, FLAGS_port2, line));
+  std::thread port2_thread(StartPort2Thread, FLAGS_port2, line);
 
   // Should only return when this thread's message loop quits.
   StartServer(FLAGS_port, line);
