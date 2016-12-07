@@ -208,14 +208,14 @@ void QuicSimpleServerStream::SendResponse() {
   if (++connection_count % 2 == 1) {
     while (connection_count % 2 == 1) multiplex_cv.Wait();
     multiplex_lock.Release();
-    DVLOG(1) << "Sending response for stream " << id();
+    LOG(ERROR) << "Sending response for stream " << id() << " on connection 1";
     SendHeadersAndBodyAndTrailers(response->headers().Clone(),
                                   body1,
                                   response->trailers().Clone());
   } else {
     multiplex_lock.Release();
     multiplex_cv.Signal();
-    DVLOG(1) << "Sending response for stream " << id();
+    LOG(ERROR) << "Sending response for stream " << id() << " on connection 2";
     SendHeadersAndBodyAndTrailers(response->headers().Clone(), body2,
                                   response->trailers().Clone());
   }
