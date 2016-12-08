@@ -48,7 +48,7 @@ class QuicInverseMultiplexingClient : public QuicClientBase {
         std::string* error_details,
         std::unique_ptr<ProofVerifyDetails>* details,
         std::unique_ptr<ProofVerifierCallback> callback) override;
-  
+
     QuicAsyncStatus VerifyCertChain(
         const std::string& hostname,
         const std::vector<std::string>& certs,
@@ -73,9 +73,9 @@ class QuicInverseMultiplexingClient : public QuicClientBase {
   // Adds server addresses for multiple QUIC connections.
   // This should be called before Initialize().
   void AddServerAddresses(std::vector<IPEndPoint> server_addresses);
-  
+
   // Initialize one or multiple QUIC simple clients with each connects to a
-  // given server_address. 
+  // given server_address.
   bool Initialize() override;
 
   bool Connect();
@@ -143,6 +143,9 @@ class QuicInverseMultiplexingClient : public QuicClientBase {
   SpdyHeaderBlock request_headers_;
   base::StringPiece request_body_;
   bool request_fin_;
+
+  // Stores response. Assume only two client threads are used.
+  std::unique_ptr<std::string> response_buf_[2];
 
   // Client Threads. The client must be initialized and called from same thread.
   std::vector<std::unique_ptr<std::thread>> threads_;

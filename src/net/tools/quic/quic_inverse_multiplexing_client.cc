@@ -144,10 +144,10 @@ void QuicInverseMultiplexingClient::CreateAndInitializeClient(
   if (proof_verifier() == nullptr) {
     verifier = MakeUnique<FakeProofVerifier>();
   } else {
-    verifier = MakeUnique<ProofVerifierChromium>(
+/*    verifier = MakeUnique<ProofVerifierChromium>(
               cert_verifiers_[i].get(), new CTPolicyEnforcer(),
               new TransportSecurityState, new MultiLogCTVerifier());
-    // verifier = MakeUnique<FakeProofVerifier>();
+*/    verifier = MakeUnique<FakeProofVerifier>();
 
   }
   clients_[i].reset(new QuicSimpleClient(server_address, server_id(),
@@ -199,7 +199,14 @@ void QuicInverseMultiplexingClient::SendRequestAndWriteResponse(
   clients_[i]->set_store_response(store_response_);
   clients_[i].get()->SendRequestAndWaitForResponse(headers, body, fin);
   LOG(ERROR) << "Thread " << i << " : Response received.";
-  // TODO: write response somewhere.
+  // Parses sequence number from response.
+  // Assumes sequence number is encoded in the first byte of body.
+  int seq_num = clients_[i]->latest_response_body().empty()
+          ? i : int(clients_[i]->latest_response_body()[0]);
+  // Doublechecks if the sequence number is valid.
+  seq_num = (seq_num == 0 || seq_num == 1) ? seq_num : i;
+  response_buf_[seq_num] = MakeUnique<string>(
+                            clients_[i]->latest_response_body().substr(1));
 }
 
 void QuicInverseMultiplexingClient::SendRequestAndWaitForResponse(
@@ -218,10 +225,8 @@ void QuicInverseMultiplexingClient::SendRequestAndWaitForResponse(
   while (num_response_ready_ < int(clients_.size())) {
     response_cv_.wait(response_lock);
   }
-  // TODO: parse the body of each response and buffer it in the right order.
-  // TODO: merge two loops together.
-  for (auto& client : clients_) {
-    latest_response_body_ += client->latest_response_body();
+  for(int i = 0; i < int(clients_.size()); i++) {
+    latest_response_body_ += *(response_buf_[i]);
   }
   latest_response_headers_ = clients_.back()->latest_response_headers();
   latest_response_trailers_ = clients_.back()->latest_response_trailers();
