@@ -199,14 +199,21 @@ void QuicInverseMultiplexingClient::SendRequestAndWriteResponse(
   clients_[i]->set_store_response(store_response_);
   clients_[i].get()->SendRequestAndWaitForResponse(headers, body, fin);
   LOG(ERROR) << "Thread " << i << " : Response received.";
-  // Parses sequence number from response.
+  // TODO: Parses sequence number from response.
   // Assumes sequence number is encoded in the first byte of body.
+  int seq_num = i;
+/*
   int seq_num = clients_[i]->latest_response_body().empty()
           ? i : int(clients_[i]->latest_response_body()[0]);
   // Doublechecks if the sequence number is valid.
   seq_num = (seq_num == 0 || seq_num == 1) ? seq_num : i;
   response_buf_[seq_num] = MakeUnique<string>(
                             clients_[i]->latest_response_body().substr(1));
+*/
+  LOG(ERROR) << "Length: "
+             << clients_[i]->latest_response_body().length();
+  response_buf_[seq_num] = MakeUnique<string>(
+                            clients_[i]->latest_response_body());
 }
 
 void QuicInverseMultiplexingClient::SendRequestAndWaitForResponse(

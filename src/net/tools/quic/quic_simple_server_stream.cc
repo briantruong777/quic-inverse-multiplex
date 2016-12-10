@@ -198,8 +198,6 @@ void QuicSimpleServerStream::SendResponse() {
   }
 
   StringPiece body = response->body();
-  StringPiece body1 = body.substr(0, body.length() / 2);
-  StringPiece body2 = body.substr(body.length() / 2);
 
   static base::Lock multiplex_lock;
   static base::ConditionVariable multiplex_cv(&multiplex_lock);
@@ -209,14 +207,13 @@ void QuicSimpleServerStream::SendResponse() {
     while (connection_count % 2 == 1) multiplex_cv.Wait();
     multiplex_lock.Release();
     LOG(ERROR) << "Sending response for stream " << id() << " on connection 1";
-    SendHeadersAndBodyAndTrailers(response->headers().Clone(),
-                                  body1,
+    SendHeadersAndBodyAndTrailers(response->headers().Clone(), body,
                                   response->trailers().Clone());
   } else {
     multiplex_lock.Release();
     multiplex_cv.Signal();
     LOG(ERROR) << "Sending response for stream " << id() << " on connection 2";
-    SendHeadersAndBodyAndTrailers(response->headers().Clone(), body2,
+    SendHeadersAndBodyAndTrailers(response->headers().Clone(), body,
                                   response->trailers().Clone());
   }
 }
@@ -266,8 +263,47 @@ void QuicSimpleServerStream::SendHeadersAndBodyAndTrailers(
   send_fin = response_trailers.empty();
   DVLOG(1) << "Writing body (fin = " << send_fin
            << ") with size: " << body.size();
+
+  // Builds an implicit queue for the response body.
+  static base::Lock response_lock_;
+  static uint64_t response_block_index_ = 0;
+  static const uint32_t response_block_size_ = 1024;
+
   if (!body.empty() || send_fin) {
-    WriteOrBufferData(body, send_fin, nullptr);
+    while (true) {
+      // TODO: Assigns data block to each stream based on bandwidth estimation
+      // of the connection (or based on the queued bytes of the stream).
+      LOG(ERROR) << "Queued data bytes: " << queued_data_bytes();
+      // if (queued_data_bytes() < response_block_size_) {
+      if (true) {
+        // Removes a block from the response body (queue).
+        response_lock_.Acquire();
+        uint64_t body_offset = response_block_index_ * response_block_size_;
+        response_block_index_ ++;
+        response_lock_.Release();
+        // Checks if this is the last block.
+        if (body_offset + response_block_size_ >= body.length()) {
+          // Sends the last block or an empty string and may send a fin.
+          LOG(ERROR) << "Last block offset: " << body_offset;
+          LOG(ERROR) << "Last block sent: " << body.substr(body_offset);
+          WriteOrBufferData(body.substr(body_offset), send_fin, nullptr);
+          break;
+        } else {
+          LOG(ERROR) << "Block offset: " << body_offset;
+          WriteOrBufferData(body.substr(body_offset, response_block_size_),
+                            false, nullptr);
+        }
+      }
+    }
+    // Sets response block index back to 0 for the next request after
+    // both thread finish.
+    response_lock_.Acquire();
+    LOG(ERROR) << "Last block index: " << response_block_index_;
+    if ((response_block_index_ - 1) * response_block_size_ >= body.length()) {
+      response_block_index_ = 0;
+      LOG(ERROR) << "Reset response block index to 0.";
+    }
+    response_lock_.Release();
   }
   if (send_fin) {
     // Nothing else to send.
