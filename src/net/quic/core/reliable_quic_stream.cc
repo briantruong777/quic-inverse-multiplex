@@ -2,9 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <thread>
+
 #include "net/quic/core/reliable_quic_stream.h"
 
+#include "base/lazy_instance.h"
 #include "base/logging.h"
+#include "base/synchronization/lock.h"
 #include "net/quic/core/quic_bug_tracker.h"
 #include "net/quic/core/quic_flags.h"
 #include "net/quic/core/quic_flow_controller.h"
@@ -14,6 +18,10 @@
 using base::StringPiece;
 using std::min;
 using std::string;
+
+// Synchronizes queued_data_ among multiple threads.
+static base::LazyInstance<base::Lock> queue_lock = LAZY_INSTANCE_INITIALIZER;
+static uint64_t next_block_index_ = 0;
 
 namespace net {
 
@@ -180,7 +188,11 @@ void ReliableQuicStream::CloseConnectionWithDetails(QuicErrorCode error,
 void ReliableQuicStream::WriteOrBufferData(
     StringPiece data,
     bool fin,
-    QuicAckListenerInterface* ack_listener) {
+    QuicAckListenerInterface* ack_listener,
+    bool buffer_only) {
+  // Reset block index to 0.
+  current_block_index_ = 0;
+
   if (data.empty() && !fin) {
     QUIC_BUG << "data.empty() && !fin";
     return;
@@ -198,10 +210,13 @@ void ReliableQuicStream::WriteOrBufferData(
   QuicConsumedData consumed_data(0, false);
   fin_buffered_ = fin;
 
-  if (queued_data_.empty()) {
+  if (queued_data_.empty() && !buffer_only) {
     struct iovec iov(MakeIovec(data));
     consumed_data = WritevData(&iov, 1, fin, ack_listener);
     DCHECK_LE(consumed_data.bytes_consumed, data.length());
+  } else {
+    // Enables futuer write on the stream.
+    session_->MarkConnectionLevelWriteBlocked(id());
   }
 
   // If there's unconsumed data or an unconsumed fin, queue it.
@@ -214,10 +229,41 @@ void ReliableQuicStream::WriteOrBufferData(
 }
 
 void ReliableQuicStream::OnCanWrite() {
+  std::thread::id this_id = std::this_thread::get_id();
   bool fin = false;
   while (!queued_data_.empty()) {
     PendingData* pending_data = &queued_data_.front();
     QuicAckListenerInterface* ack_listener = pending_data->ack_listener.get();
+    LOG(ERROR) << this_id << ": Offset: " << pending_data->offset;
+    // Checks if this a new block or a residual block.
+    if (pending_data->offset == 0) {
+      uint64_t prev_block_index = current_block_index_;
+      queue_lock.Get().Acquire();
+      current_block_index_ = next_block_index_;
+      next_block_index_ ++;
+      queue_lock.Get().Release();
+      // Removes all blocks that already processed by other threads.
+      for (; prev_block_index < current_block_index_ && !queued_data_.empty();
+             prev_block_index++) {
+        queued_data_bytes_ -= queued_data_.front().data.size();
+        queued_data_.pop_front();
+      }
+      if (queued_data_.empty()) {
+        // Sends fin if not sent.
+        if (fin_buffered_) {
+          QuicConsumedData empty_fin = WritevData(nullptr, 1, /*fin=*/true,
+                                                  ack_listener);
+          next_block_index_ = 0;
+          DCHECK_EQ(uint64_t(0), empty_fin.bytes_consumed);
+        }
+        break;
+      } else {
+        // Updates pending_data to the new front.
+        pending_data = &queued_data_.front();
+        ack_listener = pending_data->ack_listener.get();
+      }
+    }
+    LOG(ERROR) << this_id << ": Current block index: " << current_block_index_;
     if (queued_data_.size() == 1 && fin_buffered_) {
       fin = true;
     }
@@ -235,9 +281,12 @@ void ReliableQuicStream::OnCanWrite() {
         remaining_len};
     QuicConsumedData consumed_data = WritevData(&iov, 1, fin, ack_listener);
     queued_data_bytes_ -= consumed_data.bytes_consumed;
+    LOG(ERROR) << "Consumed bytes: " << consumed_data.bytes_consumed;
     if (consumed_data.bytes_consumed == remaining_len &&
         fin == consumed_data.fin_consumed) {
       queued_data_.pop_front();
+      // Moves to the next block.
+      current_block_index_ ++;
     } else {
       if (consumed_data.bytes_consumed > 0) {
         pending_data->offset += consumed_data.bytes_consumed;

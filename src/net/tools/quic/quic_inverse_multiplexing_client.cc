@@ -235,6 +235,7 @@ void QuicInverseMultiplexingClient::SendRequestAndWaitForResponse(
   for(int i = 0; i < int(clients_.size()); i++) {
     latest_response_body_ += *(response_buf_[i]);
   }
+  LOG(ERROR) << latest_response_body_.size();
   latest_response_headers_ = clients_.back()->latest_response_headers();
   latest_response_trailers_ = clients_.back()->latest_response_trailers();
   latest_response_code_ = clients_.back()->latest_response_code();

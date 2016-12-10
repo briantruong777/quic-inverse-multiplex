@@ -66,7 +66,7 @@ class QuicSimpleServerStream : public QuicSpdyStream {
                           base::StringPiece body);
   void SendHeadersAndBodyAndTrailers(SpdyHeaderBlock response_headers,
                                      base::StringPiece body,
-                                     SpdyHeaderBlock response_trailers);
+                                     SpdyHeaderBlock response_trailers, int i=0);
 
   SpdyHeaderBlock* request_headers() { return &request_headers_; }
 

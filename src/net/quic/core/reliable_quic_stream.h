@@ -185,7 +185,8 @@ class NET_EXPORT_PRIVATE ReliableQuicStream {
   // write_side_closed() becomes true, otherwise fin_buffered_ becomes true.
   void WriteOrBufferData(base::StringPiece data,
                          bool fin,
-                         QuicAckListenerInterface* ack_listener);
+                         QuicAckListenerInterface* ack_listener,
+                         bool buffer_only = false);
 
   // Sends as many bytes in the first |count| buffers of |iov| to the connection
   // as the connection will consume.
@@ -255,6 +256,9 @@ class NET_EXPORT_PRIVATE ReliableQuicStream {
   std::list<PendingData> queued_data_;
   // How many bytes are queued?
   uint64_t queued_data_bytes_;
+
+  // Current front of the queue.
+  uint64_t current_block_index_;
 
   QuicStreamSequencer sequencer_;
   QuicStreamId id_;
