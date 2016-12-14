@@ -281,6 +281,7 @@ void ReliableQuicStream::OnCanWrite() {
         remaining_len};
     QuicConsumedData consumed_data = WritevData(&iov, 1, fin, ack_listener);
     queued_data_bytes_ -= consumed_data.bytes_consumed;
+    LOG(ERROR) << "pending data: " << std::string(pending_data->data.data(), consumed_data.bytes_consumed);
     LOG(ERROR) << "Consumed bytes: " << consumed_data.bytes_consumed;
     if (consumed_data.bytes_consumed == remaining_len &&
         fin == consumed_data.fin_consumed) {

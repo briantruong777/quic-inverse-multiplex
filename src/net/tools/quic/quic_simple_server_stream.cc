@@ -16,6 +16,7 @@
 #include "base/strings/string_piece.h"
 #include "base/strings/string_split.h"
 #include "base/synchronization/condition_variable.h"
+#include "base/sys_byteorder.h"
 #include "net/quic/core/quic_bug_tracker.h"
 #include "net/quic/core/quic_flags.h"
 #include "net/quic/core/quic_spdy_stream.h"
@@ -29,6 +30,11 @@ using base::StringToInt;
 using std::string;
 
 namespace net {
+
+namespace {
+const uint32_t body_block_size_ = 1020;
+const uint32_t response_block_size_ = body_block_size_ + 4;
+}
 
 QuicSimpleServerStream::QuicSimpleServerStream(QuicStreamId id,
                                                QuicSpdySession* session)
@@ -198,22 +204,35 @@ void QuicSimpleServerStream::SendResponse() {
   }
 
   StringPiece body = response->body();
-
   static base::Lock multiplex_lock;
   static base::ConditionVariable multiplex_cv(&multiplex_lock);
   static int connection_count = 0;
+  static std::string seq_num_body;
   multiplex_lock.Acquire();
   if (++connection_count % 2 == 1) {
+
+    // Split body into sequenced numbered packets
+    seq_num_body.clear();
+    uint32_t seq_num;
+    for (size_t offset = 0; offset < body.length(); offset += body_block_size_) {
+      seq_num = base::HostToNet32(offset / body_block_size_);
+      seq_num_body.append((char*)&seq_num, sizeof(seq_num));
+      body.substr(offset, body_block_size_).AppendToString(&seq_num_body);
+      LOG(ERROR) << "offset " << offset;
+    }
+
+    LOG(ERROR) << "sequenced body" << seq_num_body;
+
     while (connection_count % 2 == 1) multiplex_cv.Wait();
     multiplex_lock.Release();
     LOG(ERROR) << "Sending response for stream " << id() << " on connection 1";
-    SendHeadersAndBodyAndTrailers(response->headers().Clone(), body,
+    SendHeadersAndBodyAndTrailers(response->headers().Clone(), seq_num_body,
                                   response->trailers().Clone(), 1);
   } else {
     multiplex_lock.Release();
     multiplex_cv.Signal();
     LOG(ERROR) << "Sending response for stream " << id() << " on connection 2";
-    SendHeadersAndBodyAndTrailers(response->headers().Clone(), body,
+    SendHeadersAndBodyAndTrailers(response->headers().Clone(), seq_num_body,
                                   response->trailers().Clone(), 2);
   }
 }
@@ -263,8 +282,6 @@ void QuicSimpleServerStream::SendHeadersAndBodyAndTrailers(
   send_fin = response_trailers.empty();
   DVLOG(1) << "Writing body (fin = " << send_fin
            << ") with size: " << body.size();
-
-  static const uint32_t response_block_size_ = 1024;
 
   if (!body.empty() || send_fin) {
     LOG(ERROR) << "Buffer response body.";

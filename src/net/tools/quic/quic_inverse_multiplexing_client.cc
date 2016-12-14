@@ -2,6 +2,7 @@
 
 #include <thread>
 #include <utility>
+#include <map>
 
 #include "base/at_exit.h"
 #include "base/bind.h"
@@ -9,6 +10,7 @@
 #include "base/memory/ptr_util.h"
 #include "base/run_loop.h"
 #include "base/threading/thread_task_runner_handle.h"
+#include "base/sys_byteorder.h"
 #include "net/base/net_errors.h"
 #include "net/http/http_request_info.h"
 #include "net/http/http_response_info.h"
@@ -199,21 +201,27 @@ void QuicInverseMultiplexingClient::SendRequestAndWriteResponse(
   clients_[i]->set_store_response(store_response_);
   clients_[i].get()->SendRequestAndWaitForResponse(headers, body, fin);
   LOG(ERROR) << "Thread " << i << " : Response received.";
-  // TODO: Parses sequence number from response.
-  // Assumes sequence number is encoded in the first byte of body.
-  int seq_num = i;
-/*
-  int seq_num = clients_[i]->latest_response_body().empty()
-          ? i : int(clients_[i]->latest_response_body()[0]);
-  // Doublechecks if the sequence number is valid.
-  seq_num = (seq_num == 0 || seq_num == 1) ? seq_num : i;
-  response_buf_[seq_num] = MakeUnique<string>(
-                            clients_[i]->latest_response_body().substr(1));
-*/
+
+  // Assuming first 4 bytes have sequence number so this packet size does
+  // include the sequence number.
+  static const size_t packet_size = 1024;
+  StringPiece response_body(clients_[i]->latest_response_body());
+  uint32_t seq_num;
+  auto packets = MakeUnique<std::map<uint32_t, StringPiece>>();
+  for (size_t offset = 0; offset < response_body.length();
+      offset += packet_size) {
+    seq_num = base::NetToHost32(
+        *(uint32_t*)response_body.substr(offset, sizeof(seq_num)).data());
+    packets->emplace(seq_num,
+        response_body.substr(offset + sizeof(seq_num),
+          packet_size - sizeof(seq_num)));
+    LOG(ERROR) << "body piece: " << response_body.substr(offset + sizeof(seq_num),
+          packet_size - sizeof(seq_num));
+  }
+
   LOG(ERROR) << "Length: "
              << clients_[i]->latest_response_body().length();
-  response_buf_[seq_num] = MakeUnique<string>(
-                            clients_[i]->latest_response_body());
+  response_buf_[i] = std::move(packets);
 }
 
 void QuicInverseMultiplexingClient::SendRequestAndWaitForResponse(
@@ -232,9 +240,35 @@ void QuicInverseMultiplexingClient::SendRequestAndWaitForResponse(
   while (num_response_ready_ < int(clients_.size())) {
     response_cv_.wait(response_lock);
   }
-  for(int i = 0; i < int(clients_.size()); i++) {
-    latest_response_body_ += *(response_buf_[i]);
+
+  uint32_t seq_num = 0;
+  auto packets1 = response_buf_[0]->begin();
+  auto packets2 = response_buf_[1]->begin();
+  while (packets1 != response_buf_[0]->end() || packets2 != response_buf_[1]->end()) {
+    if (packets1 != response_buf_[0]->end() && packets2 != response_buf_[1]->end()) {
+      if (packets1->first != seq_num && packets2->first != seq_num) {
+        LOG(ERROR) << "Unexpected sequence numbers " << packets1->first
+          << " and " << packets2->second << " when " << seq_num
+          << " was expected";
+      }
+      seq_num++;
+
+      if (packets1->first < packets2->first) {
+        packets1->second.AppendToString(&latest_response_body_);
+        packets1++;
+      } else {
+        packets2->second.AppendToString(&latest_response_body_);
+        packets2++;
+      }
+    } else if (packets1 != response_buf_[0]->end()) {
+      packets1->second.AppendToString(&latest_response_body_);
+      packets1++;
+    } else {
+      packets2->second.AppendToString(&latest_response_body_);
+      packets2++;
+    }
   }
+
   LOG(ERROR) << latest_response_body_.size();
   latest_response_headers_ = clients_.back()->latest_response_headers();
   latest_response_trailers_ = clients_.back()->latest_response_trailers();

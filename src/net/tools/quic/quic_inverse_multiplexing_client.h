@@ -9,6 +9,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <map>
 
 #include "base/command_line.h"
 #include "base/macros.h"
@@ -145,7 +146,7 @@ class QuicInverseMultiplexingClient : public QuicClientBase {
   bool request_fin_;
 
   // Stores response. Assume only two client threads are used.
-  std::unique_ptr<std::string> response_buf_[2];
+  std::unique_ptr<std::map<uint32_t, base::StringPiece>> response_buf_[2];
 
   // Client Threads. The client must be initialized and called from same thread.
   std::vector<std::unique_ptr<std::thread>> threads_;
