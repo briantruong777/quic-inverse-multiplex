@@ -259,6 +259,8 @@ class NET_EXPORT_PRIVATE ReliableQuicStream {
 
   // Current front of the queue.
   uint64_t current_block_index_;
+  // Flag for current block not being finished.
+  bool current_block_unfinished_ = false;
 
   QuicStreamSequencer sequencer_;
   QuicStreamId id_;

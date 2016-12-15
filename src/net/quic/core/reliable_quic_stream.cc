@@ -234,9 +234,8 @@ void ReliableQuicStream::OnCanWrite() {
   while (!queued_data_.empty()) {
     PendingData* pending_data = &queued_data_.front();
     QuicAckListenerInterface* ack_listener = pending_data->ack_listener.get();
-    LOG(ERROR) << this_id << ": Offset: " << pending_data->offset;
     // Checks if this a new block or a residual block.
-    if (pending_data->offset == 0) {
+    if (!current_block_unfinished_) {
       uint64_t prev_block_index = current_block_index_;
       queue_lock.Get().Acquire();
       current_block_index_ = next_block_index_;
@@ -254,6 +253,7 @@ void ReliableQuicStream::OnCanWrite() {
           QuicConsumedData empty_fin = WritevData(nullptr, 1, /*fin=*/true,
                                                   ack_listener);
           next_block_index_ = 0;
+          current_block_unfinished_ = false;
           DCHECK_EQ(uint64_t(0), empty_fin.bytes_consumed);
         }
         break;
@@ -281,17 +281,19 @@ void ReliableQuicStream::OnCanWrite() {
         remaining_len};
     QuicConsumedData consumed_data = WritevData(&iov, 1, fin, ack_listener);
     queued_data_bytes_ -= consumed_data.bytes_consumed;
-    LOG(ERROR) << "pending data: " << std::string(pending_data->data.data(), consumed_data.bytes_consumed);
+    //LOG(ERROR) << "pending data: " << std::string(pending_data->data.data(), consumed_data.bytes_consumed);
     LOG(ERROR) << "Consumed bytes: " << consumed_data.bytes_consumed;
     if (consumed_data.bytes_consumed == remaining_len &&
         fin == consumed_data.fin_consumed) {
       queued_data_.pop_front();
       // Moves to the next block.
       current_block_index_ ++;
+      current_block_unfinished_ = false;
     } else {
       if (consumed_data.bytes_consumed > 0) {
         pending_data->offset += consumed_data.bytes_consumed;
       }
+      current_block_unfinished_ = true;
       break;
     }
   }

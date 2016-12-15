@@ -215,8 +215,8 @@ void QuicInverseMultiplexingClient::SendRequestAndWriteResponse(
     packets->emplace(seq_num,
         response_body.substr(offset + sizeof(seq_num),
           packet_size - sizeof(seq_num)));
-    LOG(ERROR) << "body piece: " << response_body.substr(offset + sizeof(seq_num),
-          packet_size - sizeof(seq_num));
+//    LOG(ERROR) << "body piece: " << response_body.substr(offset + sizeof(seq_num),
+//          packet_size - sizeof(seq_num));
   }
 
   LOG(ERROR) << "Length: "
@@ -248,7 +248,7 @@ void QuicInverseMultiplexingClient::SendRequestAndWaitForResponse(
     if (packets1 != response_buf_[0]->end() && packets2 != response_buf_[1]->end()) {
       if (packets1->first != seq_num && packets2->first != seq_num) {
         LOG(ERROR) << "Unexpected sequence numbers " << packets1->first
-          << " and " << packets2->second << " when " << seq_num
+          << " and " << packets2->first << " when " << seq_num
           << " was expected";
       }
       seq_num++;

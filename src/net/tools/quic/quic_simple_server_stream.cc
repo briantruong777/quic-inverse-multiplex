@@ -221,7 +221,7 @@ void QuicSimpleServerStream::SendResponse() {
       LOG(ERROR) << "offset " << offset;
     }
 
-    LOG(ERROR) << "sequenced body" << seq_num_body;
+    // LOG(ERROR) << "sequenced body" << seq_num_body;
 
     while (connection_count % 2 == 1) multiplex_cv.Wait();
     multiplex_lock.Release();
