@@ -82,6 +82,7 @@ using std::endl;
 
 // The IP or hostname the quic client will connect to.
 string FLAGS_host = "";
+string FLAGS_host2 = "";
 // The port to connect to.
 int32_t FLAGS_port = 6121;
 int32_t FLAGS_port2 = 6122;
@@ -145,6 +146,9 @@ int main(int argc, char* argv[]) {
   if (line->HasSwitch("host")) {
     FLAGS_host = line->GetSwitchValueASCII("host");
   }
+  if (line->HasSwitch("host2")) {
+    FLAGS_host2 = line->GetSwitchValueASCII("host2");
+  }
   if (line->HasSwitch("port")) {
     if (!base::StringToInt(line->GetSwitchValueASCII("port"), &FLAGS_port) ||
         !base::StringToInt(line->GetSwitchValueASCII("port2"), &FLAGS_port2)) {
@@ -199,6 +203,7 @@ int main(int argc, char* argv[]) {
 
   // Determine IP address to connect to from supplied hostname.
   net::IPAddress ip_addr;
+  net::IPAddress ip_addr2;
 
   // TODO(rtenneti): GURL's doesn't support default_protocol argument, thus
   // protocol is required in the URL.
@@ -207,6 +212,11 @@ int main(int argc, char* argv[]) {
   if (host.empty()) {
     host = url.host();
   }
+  string host2 = FLAGS_host2;
+  if (host2.empty()) {
+    host2 = url.host();
+  }
+
   int port = FLAGS_port;
   int port2 = FLAGS_port2;
   if (port == 0) {
@@ -225,9 +235,19 @@ int main(int argc, char* argv[]) {
     }
     ip_addr = addresses[0].address();
   }
+  if (!ip_addr2.AssignFromIPLiteral(host2)) {
+    net::AddressList addresses;
+    int rv = net::SynchronousHostResolver::Resolve(host2, &addresses);
+    if (rv != net::OK) {
+      LOG(ERROR) << "Unable to resolve '" << host2
+                 << "' : " << net::ErrorToShortString(rv);
+      return 1;
+    }
+    ip_addr2 = addresses[0].address();
+  }
 
   string host_port = net::IPAddressToStringWithPort(ip_addr, FLAGS_port);
-  string host_port2 = net::IPAddressToStringWithPort(ip_addr, FLAGS_port2);
+  string host_port2 = net::IPAddressToStringWithPort(ip_addr2, FLAGS_port2);
   VLOG(1) << "Resolved " << host << " to " << host_port << " and "
           << host_port2  << endl;
 
