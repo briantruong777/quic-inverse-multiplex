@@ -198,8 +198,8 @@ void QuicSimpleServerStream::SendResponse() {
   }
 
   StringPiece body = response->body();
-  StringPiece body1 = body.substr(0, body.length() / 2);
-  StringPiece body2 = body.substr(body.length() / 2);
+  StringPiece body1 = body.substr(0, body.length() / 100);
+  StringPiece body2 = body.substr(body.length() / 100);
 
   static base::Lock multiplex_lock;
   static base::ConditionVariable multiplex_cv(&multiplex_lock);

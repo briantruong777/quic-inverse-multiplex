@@ -119,6 +119,9 @@ void QuicInverseMultiplexingClient::RunSimpleClient(int i) {
     condition_variables_[i]->wait(lck);
   }
   lck.unlock();
+  if (i == 1) {
+    sleep(1);
+  }
   SendRequestAndWriteResponse(i, request_headers_, request_body_, request_fin_);
   // Signals main thread that the response is ready.
   unique_lock<mutex> response_lock(response_mutex_);
