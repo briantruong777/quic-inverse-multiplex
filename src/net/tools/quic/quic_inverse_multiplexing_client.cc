@@ -219,7 +219,7 @@ void QuicInverseMultiplexingClient::SendRequestAndWriteResponse(
 //          packet_size - sizeof(seq_num));
   }
 
-  LOG(ERROR) << "Length: "
+  LOG(ERROR) << "Length " << i << ": "
              << clients_[i]->latest_response_body().length();
   response_buf_[i] = std::move(packets);
 }
