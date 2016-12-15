@@ -276,7 +276,7 @@ int main(int argc, char* argv[]) {
   net::QuicInverseMultiplexingClient client(net::IPEndPoint(ip_addr, port),
                                             server_id, versions,
                                             std::move(proof_verifier));
-  client.AddServerAddresses({net::IPEndPoint(ip_addr, port2)});
+  client.AddServerAddresses({net::IPEndPoint(ip_addr2, port2)});
   client.set_initial_max_packet_length(
       FLAGS_initial_mtu != 0 ? FLAGS_initial_mtu : net::kDefaultMaxPacketSize);
   if (!client.Initialize()) {
