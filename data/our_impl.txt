@@ -1,0 +1,91 @@
+allowed our implementation to decide ratio
+└(0) 0 nairb@nairb-vm-ubuntu ~/code/quic-inverse-multiplex/src
+┌$ time ./out/Default/quic_inverse_multiplexing_client --host=10.195.32.110 --host2=192.168.10.120 --port=6121 --port2=6122 https://www.example.org &>/dev/null
+
+real	0m4.933s
+user	0m6.548s
+sys	0m1.936s
+└(0) 0 nairb@nairb-vm-ubuntu ~/code/quic-inverse-multiplex/src
+┌$ for i in $(seq 20); do time ./out/Default/quic_inverse_multiplexing_client --host=10.195.32.110 --host2=192.168.10.120 --port=6121 --port2=6122 https://www.example.org &>/dev/null; done
+
+real	0m4.974s
+user	0m6.768s
+sys	0m1.728s
+
+real	0m4.300s
+user	0m5.592s
+sys	0m1.648s
+
+real	0m4.635s
+user	0m6.016s
+sys	0m1.784s
+
+real	0m4.900s
+user	0m6.492s
+sys	0m1.892s
+
+real	0m4.308s
+user	0m5.504s
+sys	0m1.652s
+
+real	0m5.152s
+user	0m7.020s
+sys	0m1.816s
+
+real	0m5.467s
+user	0m7.456s
+sys	0m2.036s
+
+real	0m5.158s
+user	0m7.040s
+sys	0m1.836s
+
+real	0m4.933s
+user	0m6.656s
+sys	0m1.840s
+
+real	0m5.285s
+user	0m7.272s
+sys	0m1.792s
+
+real	0m5.472s
+user	0m7.460s
+sys	0m1.820s
+
+real	0m4.281s
+user	0m5.464s
+sys	0m1.712s
+
+real	0m5.203s
+user	0m7.040s
+sys	0m1.760s
+
+real	0m5.250s
+user	0m7.064s
+sys	0m1.808s
+
+real	0m5.244s
+user	0m7.196s
+sys	0m1.904s
+
+real	0m5.240s
+user	0m7.020s
+sys	0m1.968s
+
+real	0m5.176s
+user	0m7.032s
+sys	0m1.856s
+
+real	0m4.979s
+user	0m6.832s
+sys	0m1.716s
+
+real	0m4.328s
+user	0m5.600s
+sys	0m1.648s
+
+real	0m5.000s
+user	0m6.752s
+sys	0m1.772s
+└(0) 0 nairb@nairb-vm-ubuntu ~/code/quic-inverse-multiplex/src
+┌$ 

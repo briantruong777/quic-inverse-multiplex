@@ -1,0 +1,255 @@
+wireless 1 Mb/s vs wired 100 Mb/s, no added latency delay
+└(0) 0 nairb@nairb-vm-ubuntu ~/code/quic-inverse-multiplex/src
+┌$ for i in $(seq 10); do time ./out/Default/quic_inverse_multiplexing_client --host=10.195.32.110 --host2=192.168.10.120 --port=6121 --port2=6122 https://www.example.org >/dev/null; done
+[1215/195320:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 0 READY_TO_CONNECT.
+[1215/195320:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 0 : CreateAndInitializeClient.
+[1215/195320:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 1 READY_TO_CONNECT.
+[1215/195320:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 0 : Finish CreateAndInitializeClient.
+[1215/195320:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 0 READY_TO_SEND_REQUEST.
+[1215/195320:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 1 READY_TO_SEND_REQUEST.
+[1215/195320:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 1 : CreateAndInitializeClient.
+[1215/195320:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 1 : Finish CreateAndInitializeClient.
+[1215/195320:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 1 : SetMaxLengthAndConnect.
+[1215/195320:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 0 : SetMaxLengthAndConnect.
+[1215/195320:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 1 : Connected.
+[1215/195320:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 1 : SendRequestAndWriteResponse.
+[1215/195320:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 0 : Connected.
+[1215/195320:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 0 : SendRequestAndWriteResponse.
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 1 : Response received.
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 1: 10208422
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 0 : Response received.
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 0: 318464
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(272)] 10485762
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 0 READY_TO_DESTRUCT.
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 1 READY_TO_DESTRUCT.
+
+real	0m3.119s
+user	0m3.672s
+sys	0m1.984s
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 0 READY_TO_CONNECT.
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 0 : CreateAndInitializeClient.
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 1 READY_TO_CONNECT.
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 0 : Finish CreateAndInitializeClient.
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 0 : SetMaxLengthAndConnect.
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 0 READY_TO_SEND_REQUEST.
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 1 READY_TO_SEND_REQUEST.
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 1 : CreateAndInitializeClient.
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 1 : Finish CreateAndInitializeClient.
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 1 : SetMaxLengthAndConnect.
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 1 : Connected.
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 1 : SendRequestAndWriteResponse.
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 0 : Connected.
+[1215/195323:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 0 : SendRequestAndWriteResponse.
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 1 : Response received.
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 1: 10217638
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 0 : Response received.
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 0: 309248
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(272)] 10485762
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 0 READY_TO_DESTRUCT.
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 1 READY_TO_DESTRUCT.
+
+real	0m2.908s
+user	0m4.188s
+sys	0m1.176s
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 0 READY_TO_CONNECT.
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 1 READY_TO_CONNECT.
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 0 READY_TO_SEND_REQUEST.
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 1 READY_TO_SEND_REQUEST.
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 1 : CreateAndInitializeClient.
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 1 : Finish CreateAndInitializeClient.
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 1 : SetMaxLengthAndConnect.
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 0 : CreateAndInitializeClient.
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 0 : Finish CreateAndInitializeClient.
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 0 : SetMaxLengthAndConnect.
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 0 : Connected.
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 0 : SendRequestAndWriteResponse.
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 1 : Connected.
+[1215/195326:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 1 : SendRequestAndWriteResponse.
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 1 : Response received.
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 0 : Response received.
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 0: 356352
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 1: 10170534
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(272)] 10485762
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 0 READY_TO_DESTRUCT.
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 1 READY_TO_DESTRUCT.
+
+real	0m3.458s
+user	0m3.884s
+sys	0m1.624s
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 0 READY_TO_CONNECT.
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 0 : CreateAndInitializeClient.
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 1 READY_TO_CONNECT.
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 1 : CreateAndInitializeClient.
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 0 READY_TO_SEND_REQUEST.
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 1 : Finish CreateAndInitializeClient.
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 1 READY_TO_SEND_REQUEST.
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 0 : Finish CreateAndInitializeClient.
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 0 : SetMaxLengthAndConnect.
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 1 : SetMaxLengthAndConnect.
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 0 : Connected.
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 0 : SendRequestAndWriteResponse.
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 1 : Connected.
+[1215/195330:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 1 : SendRequestAndWriteResponse.
+[1215/195332:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 1 : Response received.
+[1215/195332:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 1: 10263718
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 0 : Response received.
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 0: 263168
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(272)] 10485762
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 0 READY_TO_DESTRUCT.
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 1 READY_TO_DESTRUCT.
+
+real	0m3.095s
+user	0m3.656s
+sys	0m1.656s
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 0 READY_TO_CONNECT.
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 1 READY_TO_CONNECT.
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 1 : CreateAndInitializeClient.
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 1 : Finish CreateAndInitializeClient.
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 0 : CreateAndInitializeClient.
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 0 : Finish CreateAndInitializeClient.
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 0 : SetMaxLengthAndConnect.
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 0 READY_TO_SEND_REQUEST.
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 1 READY_TO_SEND_REQUEST.
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 1 : SetMaxLengthAndConnect.
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 1 : Connected.
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 1 : SendRequestAndWriteResponse.
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 0 : Connected.
+[1215/195333:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 0 : SendRequestAndWriteResponse.
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 1 : Response received.
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 1: 10214566
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 0 : Response received.
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 0: 312320
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(272)] 10485762
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 0 READY_TO_DESTRUCT.
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 1 READY_TO_DESTRUCT.
+
+real	0m3.068s
+user	0m3.956s
+sys	0m1.400s
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 0 READY_TO_CONNECT.
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 1 READY_TO_CONNECT.
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 0 : CreateAndInitializeClient.
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 0 READY_TO_SEND_REQUEST.
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 1 READY_TO_SEND_REQUEST.
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 0 : Finish CreateAndInitializeClient.
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 0 : SetMaxLengthAndConnect.
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 1 : CreateAndInitializeClient.
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 1 : Finish CreateAndInitializeClient.
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 1 : SetMaxLengthAndConnect.
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 0 : Connected.
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 0 : SendRequestAndWriteResponse.
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 1 : Connected.
+[1215/195336:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 1 : SendRequestAndWriteResponse.
+[1215/195338:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 1 : Response received.
+[1215/195338:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 1: 10237094
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 0 : Response received.
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 0: 289792
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(272)] 10485762
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 0 READY_TO_DESTRUCT.
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 1 READY_TO_DESTRUCT.
+
+real	0m2.851s
+user	0m2.976s
+sys	0m1.908s
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 0 READY_TO_CONNECT.
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 1 READY_TO_CONNECT.
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 0 : CreateAndInitializeClient.
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 0 READY_TO_SEND_REQUEST.
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 1 READY_TO_SEND_REQUEST.
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 0 : Finish CreateAndInitializeClient.
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 0 : SetMaxLengthAndConnect.
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 1 : CreateAndInitializeClient.
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 1 : Finish CreateAndInitializeClient.
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 1 : SetMaxLengthAndConnect.
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 0 : Connected.
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 0 : SendRequestAndWriteResponse.
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 1 : Connected.
+[1215/195339:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 1 : SendRequestAndWriteResponse.
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 1 : Response received.
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 1: 10211494
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 0 : Response received.
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 0: 315392
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(272)] 10485762
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 0 READY_TO_DESTRUCT.
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 1 READY_TO_DESTRUCT.
+
+real	0m3.008s
+user	0m3.388s
+sys	0m1.980s
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 0 READY_TO_CONNECT.
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 0 : CreateAndInitializeClient.
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 1 READY_TO_CONNECT.
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 0 READY_TO_SEND_REQUEST.
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 0 : Finish CreateAndInitializeClient.
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 0 : SetMaxLengthAndConnect.
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 1 READY_TO_SEND_REQUEST.
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 1 : CreateAndInitializeClient.
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 1 : Finish CreateAndInitializeClient.
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 1 : SetMaxLengthAndConnect.
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 1 : Connected.
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 1 : SendRequestAndWriteResponse.
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 0 : Connected.
+[1215/195342:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 0 : SendRequestAndWriteResponse.
+[1215/195344:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 1 : Response received.
+[1215/195344:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 1: 10351782
+[1215/195344:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 0 : Response received.
+[1215/195344:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 0: 175104
+[1215/195344:ERROR:quic_inverse_multiplexing_client.cc(272)] 10485762
+[1215/195344:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 0 READY_TO_DESTRUCT.
+[1215/195344:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 1 READY_TO_DESTRUCT.
+
+real	0m2.702s
+user	0m3.836s
+sys	0m1.056s
+[1215/195344:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 0 READY_TO_CONNECT.
+[1215/195344:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 1 READY_TO_CONNECT.
+[1215/195344:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 0 : CreateAndInitializeClient.
+[1215/195344:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 0 READY_TO_SEND_REQUEST.
+[1215/195344:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 1 READY_TO_SEND_REQUEST.
+[1215/195344:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 0 : Finish CreateAndInitializeClient.
+[1215/195344:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 0 : SetMaxLengthAndConnect.
+[1215/195344:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 1 : CreateAndInitializeClient.
+[1215/195344:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 1 : Finish CreateAndInitializeClient.
+[1215/195344:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 1 : SetMaxLengthAndConnect.
+[1215/195345:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 1 : Connected.
+[1215/195345:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 1 : SendRequestAndWriteResponse.
+[1215/195346:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 0 : Connected.
+[1215/195346:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 0 : SendRequestAndWriteResponse.
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 1 : Response received.
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 0 : Response received.
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 0: 245760
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 1: 10281126
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(272)] 10485762
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 0 READY_TO_DESTRUCT.
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 1 READY_TO_DESTRUCT.
+
+real	0m3.899s
+user	0m5.576s
+sys	0m1.556s
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 0 READY_TO_CONNECT.
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(193)] Set thread 1 READY_TO_CONNECT.
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 1 : CreateAndInitializeClient.
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 0 READY_TO_SEND_REQUEST.
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 1 : Finish CreateAndInitializeClient.
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(143)] Thread 0 : CreateAndInitializeClient.
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(236)] Set thread 1 READY_TO_SEND_REQUEST.
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(159)] Thread 0 : Finish CreateAndInitializeClient.
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 0 : SetMaxLengthAndConnect.
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(178)] Thread 1 : SetMaxLengthAndConnect.
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 1 : Connected.
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 1 : SendRequestAndWriteResponse.
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(185)] Thread 0 : Connected.
+[1215/195348:ERROR:quic_inverse_multiplexing_client.cc(200)] Thread 0 : SendRequestAndWriteResponse.
+[1215/195351:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 1 : Response received.
+[1215/195351:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 1: 10423462
+[1215/195355:ERROR:quic_inverse_multiplexing_client.cc(203)] Thread 0 : Response received.
+[1215/195355:ERROR:quic_inverse_multiplexing_client.cc(222)] Length 0: 103424
+[1215/195355:ERROR:quic_inverse_multiplexing_client.cc(272)] 10485762
+[1215/195355:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 0 READY_TO_DESTRUCT.
+[1215/195355:ERROR:quic_inverse_multiplexing_client.cc(93)] Set thread 1 READY_TO_DESTRUCT.
+
+real	0m6.744s
+user	0m6.868s
+sys	0m1.936s
+└(0) 0 nairb@nairb-vm-ubuntu ~/code/quic-inverse-multiplex/src
+┌$ 

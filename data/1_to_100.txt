@@ -1,0 +1,69 @@
+ratio was forced to send 1 to 100
+└(0) 0 nairb@nairb-vm-ubuntu ~/code/quic-inverse-multiplex/src
+┌$ time ./out/Default/quic_inverse_multiplexing_client --host=10.195.32.110 --host2=192.168.10.120 --port=6121 --port2=6122 https://www.example.org &>/dev/null
+
+real	0m5.354s
+user	0m5.460s
+sys	0m0.976s
+└(0) 0 nairb@nairb-vm-ubuntu ~/code/quic-inverse-multiplex/src
+┌$ time ./out/Default/quic_inverse_multiplexing_client --host=10.195.32.110 --host2=192.168.10.120 --port=6121 --port2=6122 https://www.example.org &>/dev/null
+
+real	0m4.307s
+user	0m4.328s
+sys	0m0.992s
+└(0) 0 nairb@nairb-vm-ubuntu ~/code/quic-inverse-multiplex/src
+┌$ time ./out/Default/quic_inverse_multiplexing_client --host=10.195.32.110 --host2=192.168.10.120 --port=6121 --port2=6122 https://www.example.org &>/dev/null
+
+real	0m4.051s
+user	0m4.088s
+sys	0m1.036s
+└(0) 0 nairb@nairb-vm-ubuntu ~/code/quic-inverse-multiplex/src
+┌$ time ./out/Default/quic_inverse_multiplexing_client --host=10.195.32.110 --host2=192.168.10.120 --port=6121 --port2=6122 https://www.example.org &>/dev/null
+
+real	0m4.455s
+user	0m4.296s
+sys	0m1.172s
+└(0) 0 nairb@nairb-vm-ubuntu ~/code/quic-inverse-multiplex/src
+┌$ time ./out/Default/quic_inverse_multiplexing_client --host=10.195.32.110 --host2=192.168.10.120 --port=6121 --port2=6122 https://www.example.org &>/dev/null
+
+real	0m5.454s
+user	0m5.348s
+sys	0m1.184s
+└(0) 0 nairb@nairb-vm-ubuntu ~/code/quic-inverse-multiplex/src
+┌$ time ./out/Default/quic_inverse_multiplexing_client --host=10.195.32.110 --host2=192.168.10.120 --port=6121 --port2=6122 https://www.example.org &>/dev/null
+
+real	0m4.178s
+user	0m4.104s
+sys	0m1.064s
+└(0) 0 nairb@nairb-vm-ubuntu ~/code/quic-inverse-multiplex/src
+┌$ time ./out/Default/quic_inverse_multiplexing_client --host=10.195.32.110 --host2=192.168.10.120 --port=6121 --port2=6122 https://www.example.org &>/dev/null
+
+real	0m4.084s
+user	0m4.152s
+sys	0m0.908s
+└(0) 0 nairb@nairb-vm-ubuntu ~/code/quic-inverse-multiplex/src
+┌$ time ./out/Default/quic_inverse_multiplexing_client --host=10.195.32.110 --host2=192.168.10.120 --port=6121 --port2=6122 https://www.example.org &>/dev/null
+
+real	0m4.372s
+user	0m4.292s
+sys	0m1.104s
+└(0) 0 nairb@nairb-vm-ubuntu ~/code/quic-inverse-multiplex/src
+┌$ time ./out/Default/quic_inverse_multiplexing_client --host=10.195.32.110 --host2=192.168.10.120 --port=6121 --port2=6122 https://www.example.org &>/dev/null
+
+real	0m5.812s
+user	0m5.484s
+sys	0m1.368s
+└(0) 0 nairb@nairb-vm-ubuntu ~/code/quic-inverse-multiplex/src
+┌$ time ./out/Default/quic_inverse_multiplexing_client --host=10.195.32.110 --host2=192.168.10.120 --port=6121 --port2=6122 https://www.example.org &>/dev/null
+
+real	0m4.434s
+user	0m4.520s
+sys	0m0.908s
+└(0) 0 nairb@nairb-vm-ubuntu ~/code/quic-inverse-multiplex/src
+┌$ time ./out/Default/quic_inverse_multiplexing_client --host=10.195.32.110 --host2=192.168.10.120 --port=6121 --port2=6122 https://www.example.org &>/dev/null
+
+real	0m4.096s
+user	0m3.824s
+sys	0m1.132s
+└(0) 0 nairb@nairb-vm-ubuntu ~/code/quic-inverse-multiplex/src
+┌$ 
